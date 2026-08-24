@@ -3,21 +3,21 @@
 @tailwind utilities;
 
 /* ============================================================
-   AURORA — GLOBAL DESIGN SYSTEM
-   Tailwind CSS 3.x compatible
+   AURORA — V2 DESIGN SYSTEM
+   Black / graphite / white / precision lime
 ============================================================ */
 
 :root {
   --aurora-black: #000000;
 
-  --aurora-surface: #09090b;
-  --aurora-surface-2: #0d0d0f;
-  --aurora-surface-3: #121214;
-  --aurora-surface-4: #18181b;
+  --aurora-surface: #080809;
+  --aurora-surface-1: #0b0b0d;
+  --aurora-surface-2: #101012;
+  --aurora-surface-3: #151518;
 
-  --aurora-border: #1e1e21;
-  --aurora-border-soft: rgba(255, 255, 255, 0.055);
-  --aurora-border-hover: rgba(255, 255, 255, 0.12);
+  --aurora-border: rgba(255, 255, 255, 0.075);
+  --aurora-border-soft: rgba(255, 255, 255, 0.045);
+  --aurora-border-strong: rgba(255, 255, 255, 0.12);
 
   --aurora-white: #ffffff;
   --aurora-text: #d4d4d8;
@@ -25,14 +25,16 @@
   --aurora-dim: #52525b;
   --aurora-ghost: #27272a;
 
-  --aurora-red: #ff1232;
-  --aurora-red-hover: #ff2945;
-  --aurora-red-dark: #160406;
+  /* Precision accent */
+  --aurora-lime: #b7ff2a;
+  --aurora-lime-soft: rgba(183, 255, 42, 0.08);
+  --aurora-lime-border: rgba(183, 255, 42, 0.18);
+  --aurora-lime-glow: rgba(183, 255, 42, 0.14);
 
   --aurora-ease: cubic-bezier(0.22, 1, 0.36, 1);
   --aurora-ease-soft: cubic-bezier(0.16, 1, 0.3, 1);
+  --aurora-ease-spring: cubic-bezier(0.2, 0.85, 0.25, 1);
 }
-
 
 /* ============================================================
    BASE
@@ -48,7 +50,8 @@ html {
   width: 100%;
   height: 100%;
 
-  background: #000000;
+  background: #000;
+
   color-scheme: dark;
 
   -webkit-font-smoothing: antialiased;
@@ -65,8 +68,8 @@ body {
   margin: 0;
   padding: 0;
 
-  background: #000000;
-  color: #ffffff;
+  background: #000;
+  color: #fff;
 
   font-family:
     Inter,
@@ -87,7 +90,6 @@ body {
   height: 100%;
   min-height: 100dvh;
 }
-
 
 /* ============================================================
    FORM ELEMENTS
@@ -119,11 +121,11 @@ input {
 }
 
 textarea {
-  caret-color: var(--aurora-red);
+  caret-color: var(--aurora-lime);
 }
 
 input {
-  caret-color: var(--aurora-red);
+  caret-color: var(--aurora-lime);
 }
 
 textarea::placeholder,
@@ -132,34 +134,32 @@ input::placeholder {
   opacity: 1;
 }
 
-
 /* ============================================================
    SELECTION
 ============================================================ */
 
 ::selection {
-  background: rgba(255, 18, 50, 0.25);
-  color: #ffffff;
+  background: rgba(183, 255, 42, 0.18);
+  color: #fff;
 }
 
 ::-moz-selection {
-  background: rgba(255, 18, 50, 0.25);
-  color: #ffffff;
+  background: rgba(183, 255, 42, 0.18);
+  color: #fff;
 }
 
-
 /* ============================================================
-   SCROLLBARS
+   SCROLL SYSTEM
 ============================================================ */
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: #242428 transparent;
+  scrollbar-color: #252528 transparent;
 }
 
 *::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
 }
 
 *::-webkit-scrollbar-track {
@@ -167,18 +167,17 @@ input::placeholder {
 }
 
 *::-webkit-scrollbar-thumb {
-  background: #242428;
+  background: #252528;
   border-radius: 999px;
 }
 
 *::-webkit-scrollbar-thumb:hover {
-  background: #36363b;
+  background: #36363a;
 }
 
-
-/* ============================================================
-   HIDE SCROLLBAR
-============================================================ */
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
 
 .scrollbar-hide {
   -ms-overflow-style: none;
@@ -188,7 +187,6 @@ input::placeholder {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
-
 
 /* ============================================================
    AURORA MARK
@@ -203,15 +201,15 @@ input::placeholder {
 
   border-radius: 8px;
 
-  border: 1px solid #29292d;
+  border: 1px solid rgba(183, 255, 42, 0.16);
 
   background:
     radial-gradient(
       circle at 50% 50%,
-      rgba(255, 18, 50, 0.08),
-      transparent 65%
+      rgba(183, 255, 42, 0.08),
+      transparent 68%
     ),
-    #0d0d0f;
+    #0b0b0d;
 
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.025),
@@ -219,18 +217,17 @@ input::placeholder {
 }
 
 .aurora-mark span {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
 
   border-radius: 999px;
 
-  background: var(--aurora-red);
+  background: var(--aurora-lime);
 
   box-shadow:
-    0 0 8px rgba(255, 18, 50, 0.65),
-    0 0 22px rgba(255, 18, 50, 0.2);
+    0 0 8px rgba(183, 255, 42, 0.65),
+    0 0 22px rgba(183, 255, 42, 0.18);
 }
-
 
 /* ============================================================
    TECHNICAL GRID
@@ -239,35 +236,71 @@ input::placeholder {
 .technical-grid {
   background-image:
     linear-gradient(
-      rgba(255, 255, 255, 0.018) 1px,
+      rgba(255, 255, 255, 0.017) 1px,
       transparent 1px
     ),
     linear-gradient(
       90deg,
-      rgba(255, 255, 255, 0.018) 1px,
+      rgba(255, 255, 255, 0.017) 1px,
       transparent 1px
     );
 
-  background-size: 44px 44px;
+  background-size: 40px 40px;
 }
 
+/* ============================================================
+   GLASS
+============================================================ */
+
+.aurora-glass {
+  background: rgba(8, 8, 9, 0.78);
+
+  backdrop-filter:
+    blur(26px)
+    saturate(120%);
+
+  -webkit-backdrop-filter:
+    blur(26px)
+    saturate(120%);
+
+  border: 1px solid var(--aurora-border);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.018);
+}
 
 /* ============================================================
-   GLOBAL ANIMATION
+   HAIRLINES
+============================================================ */
+
+.aurora-hairline {
+  width: 100%;
+  height: 1px;
+  background: var(--aurora-border);
+}
+
+.aurora-hairline-soft {
+  width: 100%;
+  height: 1px;
+  background: var(--aurora-border-soft);
+}
+
+/* ============================================================
+   ANIMATION SYSTEM
 ============================================================ */
 
 @keyframes aurora-in {
   0% {
     opacity: 0;
     transform:
-      translateY(8px)
-      scale(0.99);
+      translate3d(0, 8px, 0)
+      scale(0.992);
   }
 
   100% {
     opacity: 1;
     transform:
-      translateY(0)
+      translate3d(0, 0, 0)
       scale(1);
   }
 }
@@ -279,11 +312,6 @@ input::placeholder {
     var(--aurora-ease)
     both;
 }
-
-
-/* ============================================================
-   FADE
-============================================================ */
 
 @keyframes aurora-fade {
   from {
@@ -298,20 +326,15 @@ input::placeholder {
 .animate-aurora-fade {
   animation:
     aurora-fade
-    0.4s
+    0.35s
     ease
     both;
 }
 
-
-/* ============================================================
-   SCALE IN
-============================================================ */
-
 @keyframes aurora-scale-in {
   from {
     opacity: 0;
-    transform: scale(0.97);
+    transform: scale(0.965);
   }
 
   to {
@@ -328,16 +351,15 @@ input::placeholder {
     both;
 }
 
-
 /* ============================================================
-   PULSE
+   GENERATION PULSE
 ============================================================ */
 
 @keyframes aurora-pulse {
   0%,
   100% {
-    opacity: 0.4;
-    transform: scale(0.9);
+    opacity: 0.35;
+    transform: scale(0.86);
   }
 
   50% {
@@ -349,14 +371,13 @@ input::placeholder {
 .animate-aurora-pulse {
   animation:
     aurora-pulse
-    1.6s
+    1.5s
     ease-in-out
     infinite;
 }
 
-
 /* ============================================================
-   PROGRESS BAR
+   GENERATION PROGRESS
 ============================================================ */
 
 @keyframes aurora-progress {
@@ -372,20 +393,19 @@ input::placeholder {
 .animate-aurora-progress {
   animation:
     aurora-progress
-    1.5s
+    1.45s
     ease-in-out
     infinite;
 }
 
-
 /* ============================================================
-   BLINK
+   LIME STATUS BLINK
 ============================================================ */
 
 @keyframes aurora-blink {
   0%,
   100% {
-    opacity: 0.3;
+    opacity: 0.35;
   }
 
   50% {
@@ -396,11 +416,10 @@ input::placeholder {
 .aurora-blink {
   animation:
     aurora-blink
-    1.4s
+    1.5s
     ease-in-out
     infinite;
 }
-
 
 /* ============================================================
    SHIMMER
@@ -426,8 +445,7 @@ input::placeholder {
 
   position: absolute;
 
-  top: 0;
-  bottom: 0;
+  inset-block: 0;
   left: 0;
 
   width: 35%;
@@ -438,7 +456,7 @@ input::placeholder {
     linear-gradient(
       90deg,
       transparent,
-      rgba(255, 255, 255, 0.055),
+      rgba(255, 255, 255, 0.045),
       transparent
     );
 
@@ -449,61 +467,21 @@ input::placeholder {
     infinite;
 }
 
-
 /* ============================================================
-   RED GLOW
+   LIME GLOW
 ============================================================ */
 
-.aurora-red-glow {
+.aurora-lime-glow {
   box-shadow:
-    0 0 0 1px rgba(255, 18, 50, 0.05),
-    0 0 24px rgba(255, 18, 50, 0.08);
+    0 0 0 1px rgba(183, 255, 42, 0.045),
+    0 0 24px rgba(183, 255, 42, 0.07);
 }
 
-.aurora-red-glow-strong {
+.aurora-lime-glow-strong {
   box-shadow:
-    0 0 0 1px rgba(255, 18, 50, 0.08),
-    0 0 32px rgba(255, 18, 50, 0.16);
+    0 0 0 1px rgba(183, 255, 42, 0.08),
+    0 0 32px rgba(183, 255, 42, 0.14);
 }
-
-
-/* ============================================================
-   GLASS
-============================================================ */
-
-.aurora-glass {
-  background: rgba(9, 9, 11, 0.78);
-
-  backdrop-filter:
-    blur(24px)
-    saturate(120%);
-
-  -webkit-backdrop-filter:
-    blur(24px)
-    saturate(120%);
-
-  border: 1px solid rgba(255, 255, 255, 0.07);
-}
-
-
-/* ============================================================
-   HAIRLINES
-============================================================ */
-
-.aurora-hairline {
-  width: 100%;
-  height: 1px;
-
-  background: var(--aurora-border);
-}
-
-.aurora-hairline-soft {
-  width: 100%;
-  height: 1px;
-
-  background: rgba(255, 255, 255, 0.045);
-}
-
 
 /* ============================================================
    INTERACTION
@@ -511,11 +489,11 @@ input::placeholder {
 
 .interactive {
   transition:
-    background-color 180ms ease,
-    border-color 180ms ease,
-    color 180ms ease,
-    transform 180ms ease,
-    box-shadow 180ms ease;
+    background-color 180ms var(--aurora-ease),
+    border-color 180ms var(--aurora-ease),
+    color 180ms var(--aurora-ease),
+    transform 180ms var(--aurora-ease),
+    box-shadow 180ms var(--aurora-ease);
 }
 
 .interactive:hover {
@@ -526,9 +504,8 @@ input::placeholder {
   transform: translateY(0);
 }
 
-
 /* ============================================================
-   AURORA TRANSITION SYSTEM
+   PREMIUM TRANSITIONS
 ============================================================ */
 
 .aurora-transition {
@@ -559,7 +536,6 @@ input::placeholder {
     opacity 700ms var(--aurora-ease),
     transform 700ms var(--aurora-ease);
 }
-
 
 /* ============================================================
    HORIZONTAL WORKSPACE
@@ -592,9 +568,8 @@ input::placeholder {
   transform: translate3d(0, 0, 0);
 }
 
-
 /* ============================================================
-   GPU ACCELERATION
+   GPU LAYER
 ============================================================ */
 
 .aurora-gpu {
@@ -605,7 +580,6 @@ input::placeholder {
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }
-
 
 /* ============================================================
    CODE
@@ -620,25 +594,25 @@ input::placeholder {
     "Liberation Mono",
     monospace;
 
-  font-variant-ligatures:
-    common-ligatures;
+  font-variant-ligatures: common-ligatures;
 
   tab-size: 2;
 }
-
 
 /* ============================================================
    FOCUS
 ============================================================ */
 
 *:focus-visible {
-  outline: 1px solid rgba(255, 18, 50, 0.55);
+  outline:
+    1px solid
+    rgba(183, 255, 42, 0.55);
+
   outline-offset: 2px;
 }
 
-
 /* ============================================================
-   TOUCH / MOBILE
+   TOUCH
 ============================================================ */
 
 button,
@@ -650,9 +624,8 @@ a {
   overscroll-behavior: none;
 }
 
-
 /* ============================================================
-   SAFE AREA
+   MOBILE SAFE AREA
 ============================================================ */
 
 @supports (
@@ -668,7 +641,6 @@ a {
       env(safe-area-inset-top);
   }
 }
-
 
 /* ============================================================
    REDUCED MOTION
@@ -687,7 +659,6 @@ a {
   }
 }
 
-
 /* ============================================================
    MOBILE
 ============================================================ */
@@ -703,17 +674,16 @@ a {
   }
 
   .technical-grid {
-    background-size: 32px 32px;
+    background-size: 30px 30px;
   }
 }
 
-
 /* ============================================================
-   VERY SMALL SCREENS
+   VERY SMALL DEVICES
 ============================================================ */
 
 @media (max-width: 420px) {
   .technical-grid {
-    background-size: 28px 28px;
+    background-size: 26px 26px;
   }
 }
