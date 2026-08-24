@@ -1,270 +1,769 @@
-@import "tailwindcss";
+import React, { useEffect, useRef, useState } from "react";
+import {
+  ArrowUp,
+  Image,
+  Paperclip,
+  Plus,
+  Sparkles,
+  Square,
+  Wand2,
+  X,
+} from "lucide-react";
 
-/* ============================================================
-   AURORA — GLOBAL DESIGN SYSTEM
-============================================================ */
+const suggestions = [
+  {
+    title: "Landing page",
+    prompt:
+      "Build a premium landing page for a modern creative technology company.",
+  },
+  {
+    title: "SaaS dashboard",
+    prompt:
+      "Build a polished SaaS analytics dashboard with revenue, users, activity and conversion metrics.",
+  },
+  {
+    title: "Portfolio",
+    prompt:
+      "Build a cinematic portfolio website for an independent film studio.",
+  },
+  {
+    title: "E-commerce",
+    prompt:
+      "Build a premium minimalist storefront for a luxury fashion brand.",
+  },
+];
 
-:root {
-  --aurora-black: #000000;
-  --aurora-surface-1: #09090b;
-  --aurora-surface-2: #121214;
-  --aurora-surface-3: #18181b;
+export default function ChatPanel({
+  messages = [],
+  streaming = false,
+  onSubmit,
+  onStop,
+  onOpenPreview,
+}) {
+  const [input, setInput] = useState("");
+  const [attachments, setAttachments] = useState([]);
+  const [enhancing, setEnhancing] = useState(false);
+  const [composerExpanded, setComposerExpanded] =
+    useState(false);
 
-  --aurora-border: #1e1e21;
-  --aurora-border-soft: rgba(255, 255, 255, 0.07);
-  --aurora-border-hover: rgba(255, 255, 255, 0.12);
+  const textareaRef = useRef(null);
+  const bottomRef = useRef(null);
 
-  --aurora-white: #ffffff;
-  --aurora-text: #d4d4d8;
-  --aurora-muted: #71717a;
-  --aurora-dim: #52525b;
-  --aurora-ghost: #27272a;
+  const hasConversation = messages.length > 0;
 
-  --aurora-red: #ff1232;
-  --aurora-red-hover: #ff2945;
-  --aurora-red-dark: #160406;
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+    });
+  }, [messages, streaming]);
 
-  --aurora-ease: cubic-bezier(0.22, 1, 0.36, 1);
-  --aurora-ease-soft: cubic-bezier(0.16, 1, 0.3, 1);
+  useEffect(() => {
+    const handleKeyboard = (event) => {
+      if (
+        (event.metaKey || event.ctrlKey) &&
+        event.key === "Enter"
+      ) {
+        event.preventDefault();
+
+        if (streaming) {
+          onStop?.();
+        } else {
+          submit();
+        }
+      }
+    };
+
+    window.addEventListener(
+      "keydown",
+      handleKeyboard
+    );
+
+    return () => {
+      window.removeEventListener(
+        "keydown",
+        handleKeyboard
+      );
+    };
+  }, [input, streaming]);
+
+  const submit = () => {
+    const value = input.trim();
+
+    if (!value || streaming) {
+      return;
+    }
+
+    onSubmit?.(value);
+
+    setInput("");
+    setAttachments([]);
+    setComposerExpanded(false);
+  };
+
+  const handleKeyDown = (event) => {
+    if (
+      event.key === "Enter" &&
+      !event.shiftKey
+    ) {
+      event.preventDefault();
+      submit();
+    }
+  };
+
+  const useSuggestion = (prompt) => {
+    setInput(prompt);
+
+    requestAnimationFrame(() => {
+      textareaRef.current?.focus();
+    });
+  };
+
+  const enhancePrompt = () => {
+    if (!input.trim() || enhancing) {
+      return;
+    }
+
+    setEnhancing(true);
+
+    window.setTimeout(() => {
+      setInput(
+        `${input.trim()}. Make the interface exceptionally polished, responsive, production-ready, and visually refined with strong typography, thoughtful spacing, clear hierarchy, subtle interactions, and excellent mobile behavior.`
+      );
+
+      setEnhancing(false);
+    }, 550);
+  };
+
+  const addAttachment = () => {
+    setAttachments((current) => [
+      ...current,
+      {
+        id: `${Date.now()}-${current.length}`,
+        name: "reference-image.png",
+        type: "image",
+      },
+    ]);
+  };
+
+  return (
+    <div className="
+      h-full
+      w-full
+      flex
+      flex-col
+      relative
+      overflow-hidden
+      bg-black
+    ">
+
+      {/* Ambient atmosphere */}
+
+      <div className="
+        pointer-events-none
+        absolute
+        inset-0
+        bg-[radial-gradient(circle_at_50%_15%,rgba(255,18,50,.045),transparent_34%)]
+      " />
+
+      {/* ======================================================
+          EMPTY STATE
+      ====================================================== */}
+
+      {!hasConversation && (
+        <div className="
+          relative
+          z-10
+          flex
+          justify-center
+          px-5
+          pt-[14vh]
+          md:pt-[17vh]
+        ">
+
+          <div className="
+            text-center
+            max-w-2xl
+            animate-aurora-in
+          ">
+
+            <div className="
+              inline-flex
+              items-center
+              gap-2
+              px-2.5
+              py-1.5
+              rounded-full
+              border
+              border-white/[0.07]
+              bg-white/[0.025]
+              text-[9px]
+              uppercase
+              tracking-[.18em]
+              text-zinc-600
+            ">
+
+              <span className="
+                w-1.5
+                h-1.5
+                rounded-full
+                bg-[#ff1232]
+                shadow-[0_0_10px_rgba(255,18,50,.55)]
+              " />
+
+              AI WEBSITE BUILDER
+
+            </div>
+
+            <h1 className="
+              mt-7
+              text-[clamp(44px,6vw,76px)]
+              leading-[.92]
+              tracking-[-.065em]
+              font-medium
+            ">
+              What do you want
+              <br />
+              <span className="text-zinc-600">
+                to build?
+              </span>
+            </h1>
+
+            <p className="
+              mt-6
+              mx-auto
+              max-w-[540px]
+              text-[13px]
+              leading-6
+              text-zinc-600
+            ">
+              Describe the website you want in plain
+              language. Aurora will turn the idea into
+              an editable interface you can inspect,
+              iterate on, and eventually deploy.
+            </p>
+
+          </div>
+
+        </div>
+      )}
+
+      {/* ======================================================
+          CONVERSATION
+      ====================================================== */}
+
+      <div className="
+        relative
+        z-10
+        flex-1
+        min-h-0
+        overflow-y-auto
+        px-5
+        md:px-8
+      ">
+
+        <div className="
+          max-w-[760px]
+          mx-auto
+          pt-8
+          pb-8
+        ">
+
+          {messages.map((message, index) => (
+            <ConversationMessage
+              key={message.id || index}
+              message={message}
+              onOpenPreview={onOpenPreview}
+            />
+          ))}
+
+          {streaming && (
+            <GenerationProgress />
+          )}
+
+          <div ref={bottomRef} />
+
+        </div>
+
+      </div>
+
+      {/* ======================================================
+          SUGGESTIONS
+      ====================================================== */}
+
+      {!hasConversation && (
+        <div className="
+          relative
+          z-10
+          w-full
+          max-w-[820px]
+          mx-auto
+          px-5
+          pb-5
+        ">
+
+          <div className="
+            flex
+            gap-2
+            overflow-x-auto
+            scrollbar-hide
+          ">
+
+            {suggestions.map((suggestion) => (
+              <button
+                key={suggestion.title}
+                type="button"
+                onClick={() =>
+                  useSuggestion(
+                    suggestion.prompt
+                  )
+                }
+                className="
+                  shrink-0
+                  px-3
+                  py-2
+                  rounded-lg
+                  border
+                  border-white/[0.07]
+                  bg-white/[0.02]
+                  text-[10px]
+                  text-zinc-600
+                  hover:text-zinc-200
+                  hover:bg-white/[0.045]
+                  hover:border-white/[0.12]
+                  transition-all
+                "
+              >
+                {suggestion.title}
+              </button>
+            ))}
+
+          </div>
+
+        </div>
+      )}
+
+      {/* ======================================================
+          COMPOSER
+      ====================================================== */}
+
+      <div className="
+        relative
+        z-20
+        w-full
+        max-w-[820px]
+        mx-auto
+        px-5
+        pb-5
+      ">
+
+        <div
+          className={`
+            rounded-2xl
+            border
+            bg-[#09090b]/95
+            backdrop-blur-2xl
+            shadow-[0_20px_80px_rgba(0,0,0,.55)]
+            transition-all
+            ${
+              composerExpanded
+                ? "border-white/[0.13]"
+                : "border-white/[0.08]"
+            }
+          `}
+        >
+
+          {/* Attachments */}
+
+          {attachments.length > 0 && (
+            <div className="
+              flex
+              flex-wrap
+              gap-2
+              px-3
+              pt-3
+            ">
+
+              {attachments.map(
+                (attachment) => (
+                  <div
+                    key={attachment.id}
+                    className="
+                      flex
+                      items-center
+                      gap-2
+                      px-2
+                      py-1.5
+                      rounded-lg
+                      border
+                      border-white/[0.07]
+                      bg-white/[0.025]
+                    "
+                  >
+
+                    <Image
+                      size={12}
+                      className="text-zinc-600"
+                    />
+
+                    <span className="
+                      text-[9px]
+                      text-zinc-500
+                    ">
+                      {attachment.name}
+                    </span>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setAttachments(
+                          (current) =>
+                            current.filter(
+                              (item) =>
+                                item.id !==
+                                attachment.id
+                            )
+                        )
+                      }
+                      className="
+                        text-zinc-700
+                        hover:text-white
+                        transition-colors
+                      "
+                    >
+                      <X size={10} />
+                    </button>
+
+                  </div>
+                )
+              )}
+
+            </div>
+          )}
+
+          {/* Input */}
+
+          <textarea
+            ref={textareaRef}
+            value={input}
+            onChange={(event) =>
+              setInput(event.target.value)
+            }
+            onKeyDown={handleKeyDown}
+            onFocus={() =>
+              setComposerExpanded(true)
+            }
+            placeholder={
+              hasConversation
+                ? "Describe a change..."
+                : "Describe the website you want to build..."
+            }
+            rows={
+              composerExpanded
+                ? 4
+                : 3
+            }
+            className="
+              w-full
+              resize-none
+              bg-transparent
+              outline-none
+              px-4
+              pt-4
+              text-sm
+              leading-6
+              text-zinc-200
+              placeholder:text-zinc-700
+            "
+          />
+
+          {/* Composer controls */}
+
+          <div className="
+            px-3
+            pb-3
+            flex
+            items-center
+            justify-between
+          ">
+
+            <div className="
+              flex
+              items-center
+              gap-1
+            ">
+
+              <ComposerButton
+                icon={Paperclip}
+                label="Attach"
+                onClick={addAttachment}
+              />
+
+              <ComposerButton
+                icon={Plus}
+                label="More"
+                onClick={() =>
+                  setComposerExpanded(true)
+                }
+              />
+
+              <ComposerButton
+                icon={Wand2}
+                label={
+                  enhancing
+                    ? "Enhancing"
+                    : "Enhance prompt"
+                }
+                onClick={enhancePrompt}
+                active={enhancing}
+              />
+
+            </div>
+
+            <div className="
+              flex
+              items-center
+              gap-3
+            ">
+
+              <span className="
+                hidden
+                sm:block
+                text-[9px]
+                text-zinc-800
+              ">
+                ⌘ ENTER
+              </span>
+
+              <button
+                type="button"
+                onClick={
+                  streaming
+                    ? onStop
+                    : submit
+                }
+                disabled={
+                  !streaming &&
+                  !input.trim()
+                }
+                className={`
+                  w-9
+                  h-9
+                  rounded-xl
+                  grid
+                  place-items-center
+                  transition-all
+                  ${
+                    streaming
+                      ? "bg-white/[0.08] text-white hover:bg-white/[0.12]"
+                      : input.trim()
+                      ? "bg-[#ff1232] text-white shadow-[0_0_25px_rgba(255,18,50,.18)] hover:bg-[#ff2945]"
+                      : "bg-white/[0.04] text-zinc-700"
+                  }
+                `}
+              >
+
+                {streaming ? (
+                  <Square
+                    size={10}
+                    fill="currentColor"
+                  />
+                ) : (
+                  <ArrowUp size={16} />
+                )}
+
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        <div className="
+          flex
+          justify-center
+          mt-2.5
+          text-[9px]
+          text-zinc-800
+        ">
+          Aurora can make mistakes. Review generated code before deployment.
+        </div>
+
+      </div>
+
+    </div>
+  );
 }
 
 
 /* ============================================================
-   BASE RESET
+   CONVERSATION MESSAGE
 ============================================================ */
 
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
+function ConversationMessage({
+  message,
+  onOpenPreview,
+}) {
+  const isUser =
+    message.role === "user";
 
-html {
-  width: 100%;
-  height: 100%;
-  background: var(--aurora-black);
-  color-scheme: dark;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
-}
+  return (
+    <div className="
+      mb-8
+      animate-aurora-in
+    ">
 
-body {
-  width: 100%;
-  min-width: 320px;
-  height: 100%;
-  margin: 0;
-  padding: 0;
+      <div className="
+        flex
+        items-center
+        gap-2
+        mb-2.5
+      ">
 
-  background: var(--aurora-black);
-  color: var(--aurora-white);
+        <div
+          className={`
+            w-6
+            h-6
+            rounded-lg
+            grid
+            place-items-center
+            border
+            ${
+              isUser
+                ? "bg-white/[0.04] border-white/[0.07]"
+                : "bg-[#160406] border-[#341117]"
+            }
+          `}
+        >
 
-  font-family:
-    Inter,
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
+          {isUser ? (
+            <span className="
+              text-[7px]
+              font-semibold
+              text-zinc-500
+            ">
+              YOU
+            </span>
+          ) : (
+            <Sparkles
+              size={12}
+              className="text-[#ff1232]"
+            />
+          )}
 
-  overflow: hidden;
-}
+        </div>
 
-#root {
-  width: 100%;
-  height: 100%;
-  min-height: 100dvh;
-}
+        <span className="
+          text-[9px]
+          uppercase
+          tracking-[.18em]
+          text-zinc-700
+        ">
+          {isUser ? "You" : "Aurora"}
+        </span>
 
+      </div>
 
-/* ============================================================
-   TEXT SELECTION
-============================================================ */
+      <div
+        className={`
+          text-[13px]
+          leading-6
+          whitespace-pre-wrap
+          ${
+            isUser
+              ? "text-zinc-300"
+              : "text-zinc-400"
+          }
+        `}
+      >
+        {message.content}
+      </div>
 
-::selection {
-  background: rgba(255, 18, 50, 0.24);
-  color: #ffffff;
-}
+      {message.generation && (
+        <button
+          type="button"
+          onClick={onOpenPreview}
+          className="
+            mt-4
+            w-full
+            max-w-[560px]
+            rounded-xl
+            border
+            border-white/[0.07]
+            bg-[#080809]
+            p-3
+            text-left
+            hover:border-white/[0.13]
+            hover:bg-[#0c0c0e]
+            transition-all
+            group
+          "
+        >
 
-::-moz-selection {
-  background: rgba(255, 18, 50, 0.24);
-  color: #ffffff;
-}
+          <div className="
+            flex
+            items-center
+            gap-3
+          ">
 
+            <div className="
+              w-9
+              h-9
+              rounded-lg
+              bg-[#111114]
+              border
+              border-white/[0.06]
+              grid
+              place-items-center
+            ">
+              <Sparkles
+                size={14}
+                className="
+                  text-[#ff1232]
+                  group-hover:scale-110
+                  transition-transform
+                "
+              />
+            </div>
 
-/* ============================================================
-   SCROLLBARS
-============================================================ */
+            <div className="flex-1 min-w-0">
 
-* {
-  scrollbar-width: thin;
-  scrollbar-color: #242428 transparent;
-}
+              <div className="
+                text-[11px]
+                text-zinc-300
+                truncate
+              ">
+                {message.generation.template}
+              </div>
 
-*::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
+              <div className="
+                text-[9px]
+                text-zinc-700
+                mt-1
+              ">
+                Generated website · Open preview
+              </div>
 
-*::-webkit-scrollbar-track {
-  background: transparent;
-}
+            </div>
 
-*::-webkit-scrollbar-thumb {
-  background: #242428;
-  border-radius: 999px;
-}
+            <ArrowUp
+              size={13}
+              className="
+                rotate-45
+                text-zinc-700
+                group-hover:text-white
+                transition-colors
+              "
+            />
 
-*::-webkit-scrollbar-thumb:hover {
-  background: #36363b;
-}
+          </div>
 
+        </button>
+      )}
 
-/* ============================================================
-   HIDE SCROLLBAR UTILITY
-============================================================ */
-
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-
-
-/* ============================================================
-   AURORA TRANSITIONS
-============================================================ */
-
-.aurora-transition {
-  transition:
-    color 420ms var(--aurora-ease),
-    background-color 420ms var(--aurora-ease),
-    border-color 420ms var(--aurora-ease),
-    box-shadow 420ms var(--aurora-ease),
-    opacity 420ms var(--aurora-ease),
-    transform 420ms var(--aurora-ease);
-}
-
-.aurora-transition-fast {
-  transition:
-    color 180ms var(--aurora-ease),
-    background-color 180ms var(--aurora-ease),
-    border-color 180ms var(--aurora-ease),
-    opacity 180ms var(--aurora-ease),
-    transform 180ms var(--aurora-ease);
-}
-
-.aurora-transition-slow {
-  transition:
-    color 700ms var(--aurora-ease),
-    background-color 700ms var(--aurora-ease),
-    border-color 700ms var(--aurora-ease),
-    box-shadow 700ms var(--aurora-ease),
-    opacity 700ms var(--aurora-ease),
-    transform 700ms var(--aurora-ease);
-}
-
-
-/* ============================================================
-   INTRO / FADE ANIMATION
-============================================================ */
-
-@keyframes aurora-in {
-  0% {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-aurora-in {
-  animation:
-    aurora-in
-    560ms
-    var(--aurora-ease)
-    both;
-}
-
-
-/* ============================================================
-   SOFT APPEAR
-============================================================ */
-
-@keyframes aurora-fade {
-  0% {
-    opacity: 0;
-  }
-
-  100% {
-    opacity: 1;
-  }
-}
-
-.animate-aurora-fade {
-  animation:
-    aurora-fade
-    500ms
-    ease
-    both;
-}
-
-
-/* ============================================================
-   SCALE APPEAR
-============================================================ */
-
-@keyframes aurora-scale-in {
-  0% {
-    opacity: 0;
-    transform: scale(0.97);
-  }
-
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-.animate-aurora-scale-in {
-  animation:
-    aurora-scale-in
-    480ms
-    var(--aurora-ease)
-    both;
-}
-
-
-/* ============================================================
-   RED STATUS PULSE
-============================================================ */
-
-@keyframes aurora-pulse {
-  0%,
-  100% {
-    opacity: 0.45;
-    transform: scale(0.92);
-  }
-
-  50% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-.animate-aurora-pulse {
-  animation:
-    aurora-pulse
-    1.8s
-    ease-in-out
-    infinite;
+    </div>
+  );
 }
 
 
@@ -272,342 +771,162 @@ body {
    GENERATION PROGRESS
 ============================================================ */
 
-@keyframes aurora-progress {
-  0% {
-    transform: translateX(-120%);
-  }
+function GenerationProgress() {
+  const stages = [
+    "Understanding request",
+    "Planning page structure",
+    "Generating interface",
+    "Preparing preview",
+  ];
 
-  100% {
-    transform: translateX(420%);
-  }
-}
+  return (
+    <div className="
+      mb-8
+      animate-aurora-in
+    ">
 
-.animate-aurora-progress {
-  animation:
-    aurora-progress
-    1.5s
-    ease-in-out
-    infinite;
-}
+      <div className="
+        flex
+        items-center
+        gap-2
+        mb-4
+      ">
 
+        <div className="
+          w-6
+          h-6
+          rounded-lg
+          bg-[#160406]
+          border
+          border-[#341117]
+          grid
+          place-items-center
+        ">
+          <Sparkles
+            size={12}
+            className="text-[#ff1232]"
+          />
+        </div>
 
-/* ============================================================
-   SHIMMER
-============================================================ */
+        <span className="
+          text-[10px]
+          uppercase
+          tracking-[.18em]
+          text-zinc-600
+        ">
+          Aurora is building
+        </span>
 
-@keyframes aurora-shimmer {
-  0% {
-    background-position:
-      200% 0;
-  }
+      </div>
 
-  100% {
-    background-position:
-      -200% 0;
-  }
-}
+      <div className="
+        max-w-[460px]
+        rounded-xl
+        border
+        border-white/[0.07]
+        bg-[#080809]
+        p-4
+      ">
 
-.aurora-shimmer {
-  background:
-    linear-gradient(
-      90deg,
-      rgba(255, 255, 255, 0.025),
-      rgba(255, 255, 255, 0.07),
-      rgba(255, 255, 255, 0.025)
-    );
+        <div className="space-y-3">
 
-  background-size: 200% 100%;
+          {stages.map(
+            (stage, index) => (
+              <div
+                key={stage}
+                className="
+                  flex
+                  items-center
+                  gap-3
+                "
+              >
 
-  animation:
-    aurora-shimmer
-    2s
-    linear
-    infinite;
-}
+                <span
+                  className={`
+                    w-1.5
+                    h-1.5
+                    rounded-full
+                    ${
+                      index === 2
+                        ? "bg-[#ff1232] animate-pulse"
+                        : index < 2
+                        ? "bg-zinc-500"
+                        : "bg-zinc-800"
+                    }
+                  `}
+                />
 
+                <span
+                  className={`
+                    text-[10px]
+                    ${
+                      index <= 2
+                        ? "text-zinc-400"
+                        : "text-zinc-800"
+                    }
+                  `}
+                >
+                  {stage}
+                </span>
 
-/* ============================================================
-   RED GLOW
-============================================================ */
+              </div>
+            )
+          )}
 
-.aurora-red-glow {
-  box-shadow:
-    0 0 0 1px rgba(255, 18, 50, 0.05),
-    0 0 24px rgba(255, 18, 50, 0.08);
-}
+        </div>
 
-.aurora-red-glow-strong {
-  box-shadow:
-    0 0 0 1px rgba(255, 18, 50, 0.08),
-    0 0 32px rgba(255, 18, 50, 0.16);
-}
+        <div className="
+          mt-4
+          h-px
+          bg-[#18181b]
+          overflow-hidden
+        ">
+          <div className="
+            h-full
+            w-1/3
+            bg-[#ff1232]
+            shadow-[0_0_12px_rgba(255,18,50,.5)]
+            animate-aurora-progress
+          " />
+        </div>
 
+      </div>
 
-/* ============================================================
-   TECHNICAL HAIRLINE
-============================================================ */
-
-.aurora-hairline {
-  height: 1px;
-  width: 100%;
-  background: var(--aurora-border);
-}
-
-.aurora-hairline-soft {
-  height: 1px;
-  width: 100%;
-  background: rgba(255, 255, 255, 0.045);
-}
-
-
-/* ============================================================
-   GLASS SURFACE
-============================================================ */
-
-.aurora-glass {
-  background:
-    rgba(9, 9, 11, 0.78);
-
-  backdrop-filter:
-    blur(24px)
-    saturate(120%);
-
-  -webkit-backdrop-filter:
-    blur(24px)
-    saturate(120%);
-
-  border:
-    1px solid
-    rgba(255, 255, 255, 0.07);
-}
-
-
-/* ============================================================
-   INPUTS
-============================================================ */
-
-textarea,
-input,
-button {
-  font: inherit;
-}
-
-textarea {
-  caret-color: var(--aurora-red);
-}
-
-input {
-  caret-color: var(--aurora-red);
-}
-
-textarea::placeholder,
-input::placeholder {
-  color: #3f3f46;
-  opacity: 1;
-}
-
-
-/* ============================================================
-   BUTTON RESET
-============================================================ */
-
-button {
-  border: 0;
-  margin: 0;
-  padding: 0;
-
-  font: inherit;
-
-  cursor: pointer;
-
-  -webkit-tap-highlight-color: transparent;
-}
-
-button:disabled {
-  cursor: default;
-}
-
-
-/* ============================================================
-   FOCUS STATES
-============================================================ */
-
-button:focus-visible,
-textarea:focus-visible,
-input:focus-visible {
-  outline: 1px solid rgba(255, 18, 50, 0.55);
-  outline-offset: 2px;
-}
-
-
-/* ============================================================
-   POINTER / TOUCH BEHAVIOR
-============================================================ */
-
-button,
-a {
-  touch-action: manipulation;
-}
-
-textarea {
-  touch-action: auto;
-}
-
-
-/* ============================================================
-   HORIZONTAL AURORA WORKSPACE
-============================================================ */
-
-.aurora-workspace {
-  width: 200vw;
-  height: 100%;
-  display: flex;
-
-  will-change: transform;
-
-  transform: translate3d(
-    0,
-    0,
-    0
+    </div>
   );
-
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-}
-
-.aurora-workspace-surface {
-  width: 100vw;
-  height: 100%;
-  flex-shrink: 0;
-
-  position: relative;
-
-  overflow: hidden;
-
-  transform:
-    translate3d(
-      0,
-      0,
-      0
-    );
 }
 
 
 /* ============================================================
-   GPU ACCELERATION
+   COMPOSER BUTTON
 ============================================================ */
 
-.aurora-gpu {
-  transform: translate3d(0, 0, 0);
-  will-change: transform;
-  backface-visibility: hidden;
-}
-
-
-/* ============================================================
-   PREVENT MOBILE OVERSCROLL
-============================================================ */
-
-.aurora-no-bounce {
-  overscroll-behavior: none;
-}
-
-
-/* ============================================================
-   CODE EDITOR SURFACES
-============================================================ */
-
-.aurora-code {
-  font-family:
-    "SFMono-Regular",
-    "Cascadia Code",
-    "Roboto Mono",
-    Consolas,
-    "Liberation Mono",
-    monospace;
-
-  font-variant-ligatures:
-    common-ligatures;
-
-  tab-size: 2;
-}
-
-
-/* ============================================================
-   NOISE / FILM GRAIN
-============================================================ */
-
-.aurora-noise {
-  position: relative;
-}
-
-.aurora-noise::after {
-  content: "";
-
-  position: absolute;
-  inset: 0;
-
-  pointer-events: none;
-
-  opacity: 0.025;
-
-  background-image:
-    url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.45'/%3E%3C/svg%3E");
-
-  mix-blend-mode:
-    screen;
-}
-
-
-/* ============================================================
-   RESPONSIVE TYPE
-============================================================ */
-
-@media (max-width: 640px) {
-  html {
-    font-size: 15px;
-  }
-
-  .aurora-glass {
-    backdrop-filter:
-      blur(18px);
-
-    -webkit-backdrop-filter:
-      blur(18px);
-  }
-}
-
-
-/* ============================================================
-   REDUCED MOTION
-============================================================ */
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 1ms !important;
-    animation-iteration-count: 1 !important;
-    scroll-behavior: auto !important;
-    transition-duration: 1ms !important;
-  }
-}
-
-
-/* ============================================================
-   SAFE AREA — MOBILE
-============================================================ */
-
-@supports (
-  padding-bottom: env(safe-area-inset-bottom)
-) {
-  .aurora-safe-bottom {
-    padding-bottom:
-      env(safe-area-inset-bottom);
-  }
-
-  .aurora-safe-top {
-    padding-top:
-      env(safe-area-inset-top);
-  }
-    }
+function ComposerButton({
+  icon: Icon,
+  label,
+  onClick,
+  active = false,
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={label}
+      className={`
+        w-8
+        h-8
+        rounded-lg
+        grid
+        place-items-center
+        transition-all
+        ${
+          active
+            ? "text-[#ff1232] bg-[#18070a]"
+            : "text-zinc-700 hover:text-zinc-300 hover:bg-white/[0.04]"
+        }
+      `}
+    >
+      <Icon size={14} />
+    </button>
+  );
+           }
