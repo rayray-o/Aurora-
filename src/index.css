@@ -2,43 +2,25 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ============================================================
-   AURORA — V2 DESIGN SYSTEM
-   Black / graphite / white / precision lime
-============================================================ */
-
 :root {
   --aurora-black: #000000;
-
   --aurora-surface: #080809;
-  --aurora-surface-1: #0b0b0d;
-  --aurora-surface-2: #101012;
-  --aurora-surface-3: #151518;
+  --aurora-surface-2: #0c0c0e;
+  --aurora-surface-3: #111114;
 
-  --aurora-border: rgba(255, 255, 255, 0.075);
-  --aurora-border-soft: rgba(255, 255, 255, 0.045);
-  --aurora-border-strong: rgba(255, 255, 255, 0.12);
+  --aurora-border: rgba(255,255,255,.07);
+  --aurora-border-soft: rgba(255,255,255,.045);
 
   --aurora-white: #ffffff;
   --aurora-text: #d4d4d8;
   --aurora-muted: #71717a;
   --aurora-dim: #52525b;
-  --aurora-ghost: #27272a;
 
-  /* Precision accent */
-  --aurora-lime: #b7ff2a;
-  --aurora-lime-soft: rgba(183, 255, 42, 0.08);
-  --aurora-lime-border: rgba(183, 255, 42, 0.18);
-  --aurora-lime-glow: rgba(183, 255, 42, 0.14);
+  --aurora-green: #b7ff2a;
 
-  --aurora-ease: cubic-bezier(0.22, 1, 0.36, 1);
-  --aurora-ease-soft: cubic-bezier(0.16, 1, 0.3, 1);
-  --aurora-ease-spring: cubic-bezier(0.2, 0.85, 0.25, 1);
+  --aurora-ease:
+    cubic-bezier(.22,1,.36,1);
 }
-
-/* ============================================================
-   BASE
-============================================================ */
 
 *,
 *::before,
@@ -49,22 +31,15 @@
 html {
   width: 100%;
   height: 100%;
-
   background: #000;
-
   color-scheme: dark;
-
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-
-  text-rendering: optimizeLegibility;
 }
 
 body {
   width: 100%;
   height: 100%;
-  min-width: 320px;
-
   margin: 0;
   padding: 0;
 
@@ -80,8 +55,6 @@ body {
     "Segoe UI",
     sans-serif;
 
-  font-synthesis: none;
-
   overflow: hidden;
 }
 
@@ -90,10 +63,6 @@ body {
   height: 100%;
   min-height: 100dvh;
 }
-
-/* ============================================================
-   FORM ELEMENTS
-============================================================ */
 
 button,
 input,
@@ -105,9 +74,7 @@ select {
 button {
   border: 0;
   margin: 0;
-
   cursor: pointer;
-
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -115,46 +82,28 @@ button:disabled {
   cursor: default;
 }
 
-textarea,
-input {
+input,
+textarea {
   outline: none;
 }
 
 textarea {
-  caret-color: var(--aurora-lime);
+  caret-color: var(--aurora-green);
 }
 
-input {
-  caret-color: var(--aurora-lime);
-}
-
-textarea::placeholder,
-input::placeholder {
+input::placeholder,
+textarea::placeholder {
   color: #3f3f46;
-  opacity: 1;
 }
-
-/* ============================================================
-   SELECTION
-============================================================ */
 
 ::selection {
-  background: rgba(183, 255, 42, 0.18);
+  background: rgba(183,255,42,.18);
   color: #fff;
 }
-
-::-moz-selection {
-  background: rgba(183, 255, 42, 0.18);
-  color: #fff;
-}
-
-/* ============================================================
-   SCROLL SYSTEM
-============================================================ */
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: #252528 transparent;
+  scrollbar-color: #27272a transparent;
 }
 
 *::-webkit-scrollbar {
@@ -167,30 +116,22 @@ input::placeholder {
 }
 
 *::-webkit-scrollbar-thumb {
-  background: #252528;
+  background: #27272a;
   border-radius: 999px;
 }
 
 *::-webkit-scrollbar-thumb:hover {
-  background: #36363a;
-}
-
-*::-webkit-scrollbar-corner {
-  background: transparent;
+  background: #3f3f46;
 }
 
 .scrollbar-hide {
-  -ms-overflow-style: none;
   scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
-
-/* ============================================================
-   AURORA MARK
-============================================================ */
 
 .aurora-mark {
   width: 28px;
@@ -201,19 +142,15 @@ input::placeholder {
 
   border-radius: 8px;
 
-  border: 1px solid rgba(183, 255, 42, 0.16);
-
   background:
     radial-gradient(
-      circle at 50% 50%,
-      rgba(183, 255, 42, 0.08),
-      transparent 68%
+      circle,
+      rgba(183,255,42,.08),
+      transparent 70%
     ),
-    #0b0b0d;
+    #09090b;
 
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.025),
-    0 0 0 1px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(183,255,42,.15);
 }
 
 .aurora-mark span {
@@ -222,85 +159,66 @@ input::placeholder {
 
   border-radius: 999px;
 
-  background: var(--aurora-lime);
+  background: var(--aurora-green);
 
   box-shadow:
-    0 0 8px rgba(183, 255, 42, 0.65),
-    0 0 22px rgba(183, 255, 42, 0.18);
+    0 0 9px rgba(183,255,42,.65),
+    0 0 22px rgba(183,255,42,.15);
 }
-
-/* ============================================================
-   TECHNICAL GRID
-============================================================ */
 
 .technical-grid {
   background-image:
     linear-gradient(
-      rgba(255, 255, 255, 0.017) 1px,
+      rgba(255,255,255,.015) 1px,
       transparent 1px
     ),
     linear-gradient(
       90deg,
-      rgba(255, 255, 255, 0.017) 1px,
+      rgba(255,255,255,.015) 1px,
       transparent 1px
     );
 
-  background-size: 40px 40px;
+  background-size: 42px 42px;
 }
 
-/* ============================================================
-   GLASS
-============================================================ */
-
 .aurora-glass {
-  background: rgba(8, 8, 9, 0.78);
+  background: rgba(8,8,9,.78);
 
   backdrop-filter:
-    blur(26px)
+    blur(24px)
     saturate(120%);
 
   -webkit-backdrop-filter:
-    blur(26px)
+    blur(24px)
     saturate(120%);
 
   border: 1px solid var(--aurora-border);
-
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.018);
 }
 
-/* ============================================================
-   HAIRLINES
-============================================================ */
+.aurora-code {
+  font-family:
+    "SFMono-Regular",
+    "Cascadia Code",
+    "Roboto Mono",
+    Consolas,
+    monospace;
 
-.aurora-hairline {
-  width: 100%;
-  height: 1px;
-  background: var(--aurora-border);
+  font-variant-ligatures: common-ligatures;
+  tab-size: 2;
 }
-
-.aurora-hairline-soft {
-  width: 100%;
-  height: 1px;
-  background: var(--aurora-border-soft);
-}
-
-/* ============================================================
-   ANIMATION SYSTEM
-============================================================ */
 
 @keyframes aurora-in {
-  0% {
+  from {
     opacity: 0;
     transform:
-      translate3d(0, 8px, 0)
-      scale(0.992);
+      translate3d(0,8px,0)
+      scale(.992);
   }
 
-  100% {
+  to {
     opacity: 1;
     transform:
-      translate3d(0, 0, 0)
+      translate3d(0,0,0)
       scale(1);
   }
 }
@@ -308,33 +226,15 @@ input::placeholder {
 .animate-aurora-in {
   animation:
     aurora-in
-    0.48s
+    .45s
     var(--aurora-ease)
     both;
 }
 
-@keyframes aurora-fade {
+@keyframes aurora-scale {
   from {
     opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
-}
-
-.animate-aurora-fade {
-  animation:
-    aurora-fade
-    0.35s
-    ease
-    both;
-}
-
-@keyframes aurora-scale-in {
-  from {
-    opacity: 0;
-    transform: scale(0.965);
+    transform: scale(.96);
   }
 
   to {
@@ -345,21 +245,17 @@ input::placeholder {
 
 .animate-aurora-scale-in {
   animation:
-    aurora-scale-in
-    0.5s
+    aurora-scale
+    .42s
     var(--aurora-ease)
     both;
 }
 
-/* ============================================================
-   GENERATION PULSE
-============================================================ */
-
 @keyframes aurora-pulse {
   0%,
   100% {
-    opacity: 0.35;
-    transform: scale(0.86);
+    opacity: .35;
+    transform: scale(.85);
   }
 
   50% {
@@ -371,129 +267,36 @@ input::placeholder {
 .animate-aurora-pulse {
   animation:
     aurora-pulse
-    1.5s
+    1.45s
     ease-in-out
     infinite;
 }
 
-/* ============================================================
-   GENERATION PROGRESS
-============================================================ */
-
 @keyframes aurora-progress {
-  0% {
-    transform: translateX(-130%);
+  from {
+    transform: translateX(-140%);
   }
 
-  100% {
-    transform: translateX(430%);
+  to {
+    transform: translateX(420%);
   }
 }
 
 .animate-aurora-progress {
   animation:
     aurora-progress
-    1.45s
+    1.4s
     ease-in-out
     infinite;
 }
-
-/* ============================================================
-   LIME STATUS BLINK
-============================================================ */
-
-@keyframes aurora-blink {
-  0%,
-  100% {
-    opacity: 0.35;
-  }
-
-  50% {
-    opacity: 1;
-  }
-}
-
-.aurora-blink {
-  animation:
-    aurora-blink
-    1.5s
-    ease-in-out
-    infinite;
-}
-
-/* ============================================================
-   SHIMMER
-============================================================ */
-
-@keyframes aurora-shimmer {
-  0% {
-    transform: translateX(-130%);
-  }
-
-  100% {
-    transform: translateX(230%);
-  }
-}
-
-.aurora-shimmer {
-  position: relative;
-  overflow: hidden;
-}
-
-.aurora-shimmer::after {
-  content: "";
-
-  position: absolute;
-
-  inset-block: 0;
-  left: 0;
-
-  width: 35%;
-
-  pointer-events: none;
-
-  background:
-    linear-gradient(
-      90deg,
-      transparent,
-      rgba(255, 255, 255, 0.045),
-      transparent
-    );
-
-  animation:
-    aurora-shimmer
-    2.4s
-    ease-in-out
-    infinite;
-}
-
-/* ============================================================
-   LIME GLOW
-============================================================ */
-
-.aurora-lime-glow {
-  box-shadow:
-    0 0 0 1px rgba(183, 255, 42, 0.045),
-    0 0 24px rgba(183, 255, 42, 0.07);
-}
-
-.aurora-lime-glow-strong {
-  box-shadow:
-    0 0 0 1px rgba(183, 255, 42, 0.08),
-    0 0 32px rgba(183, 255, 42, 0.14);
-}
-
-/* ============================================================
-   INTERACTION
-============================================================ */
 
 .interactive {
   transition:
-    background-color 180ms var(--aurora-ease),
-    border-color 180ms var(--aurora-ease),
-    color 180ms var(--aurora-ease),
-    transform 180ms var(--aurora-ease),
-    box-shadow 180ms var(--aurora-ease);
+    color .18s var(--aurora-ease),
+    background-color .18s var(--aurora-ease),
+    border-color .18s var(--aurora-ease),
+    transform .18s var(--aurora-ease),
+    box-shadow .18s var(--aurora-ease);
 }
 
 .interactive:hover {
@@ -504,147 +307,13 @@ input::placeholder {
   transform: translateY(0);
 }
 
-/* ============================================================
-   PREMIUM TRANSITIONS
-============================================================ */
-
-.aurora-transition {
-  transition:
-    color 420ms var(--aurora-ease),
-    background-color 420ms var(--aurora-ease),
-    border-color 420ms var(--aurora-ease),
-    box-shadow 420ms var(--aurora-ease),
-    opacity 420ms var(--aurora-ease),
-    transform 420ms var(--aurora-ease);
-}
-
-.aurora-transition-fast {
-  transition:
-    color 180ms var(--aurora-ease),
-    background-color 180ms var(--aurora-ease),
-    border-color 180ms var(--aurora-ease),
-    opacity 180ms var(--aurora-ease),
-    transform 180ms var(--aurora-ease);
-}
-
-.aurora-transition-slow {
-  transition:
-    color 700ms var(--aurora-ease),
-    background-color 700ms var(--aurora-ease),
-    border-color 700ms var(--aurora-ease),
-    box-shadow 700ms var(--aurora-ease),
-    opacity 700ms var(--aurora-ease),
-    transform 700ms var(--aurora-ease);
-}
-
-/* ============================================================
-   HORIZONTAL WORKSPACE
-============================================================ */
-
-.aurora-workspace {
-  width: 200vw;
-  height: 100%;
-
-  display: flex;
-
-  will-change: transform;
-
-  transform: translate3d(0, 0, 0);
-
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-}
-
-.aurora-workspace-surface {
-  width: 100vw;
-  height: 100%;
-
-  flex-shrink: 0;
-
-  position: relative;
-
-  overflow: hidden;
-
-  transform: translate3d(0, 0, 0);
-}
-
-/* ============================================================
-   GPU LAYER
-============================================================ */
-
-.aurora-gpu {
-  transform: translate3d(0, 0, 0);
-
-  will-change: transform;
-
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-}
-
-/* ============================================================
-   CODE
-============================================================ */
-
-.aurora-code {
-  font-family:
-    "SFMono-Regular",
-    "Cascadia Code",
-    "Roboto Mono",
-    Consolas,
-    "Liberation Mono",
-    monospace;
-
-  font-variant-ligatures: common-ligatures;
-
-  tab-size: 2;
-}
-
-/* ============================================================
-   FOCUS
-============================================================ */
-
 *:focus-visible {
   outline:
     1px solid
-    rgba(183, 255, 42, 0.55);
+    rgba(183,255,42,.55);
 
   outline-offset: 2px;
 }
-
-/* ============================================================
-   TOUCH
-============================================================ */
-
-button,
-a {
-  touch-action: manipulation;
-}
-
-.aurora-no-bounce {
-  overscroll-behavior: none;
-}
-
-/* ============================================================
-   MOBILE SAFE AREA
-============================================================ */
-
-@supports (
-  padding-bottom: env(safe-area-inset-bottom)
-) {
-  .aurora-safe-bottom {
-    padding-bottom:
-      env(safe-area-inset-bottom);
-  }
-
-  .aurora-safe-top {
-    padding-top:
-      env(safe-area-inset-top);
-  }
-}
-
-/* ============================================================
-   REDUCED MOTION
-============================================================ */
 
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -652,38 +321,16 @@ a {
   *::after {
     animation-duration: 1ms !important;
     animation-iteration-count: 1 !important;
-
     transition-duration: 1ms !important;
-
-    scroll-behavior: auto !important;
   }
 }
-
-/* ============================================================
-   MOBILE
-============================================================ */
 
 @media (max-width: 640px) {
   html {
     font-size: 15px;
   }
 
-  .aurora-glass {
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-  }
-
   .technical-grid {
     background-size: 30px 30px;
   }
-}
-
-/* ============================================================
-   VERY SMALL DEVICES
-============================================================ */
-
-@media (max-width: 420px) {
-  .technical-grid {
-    background-size: 26px 26px;
-  }
-}
+       }
