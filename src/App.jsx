@@ -1,247 +1,308 @@
-import { useCallback, useMemo, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import TopBar from "./components/TopBar";
 import ChatPanel from "./components/ChatPanel";
 import PreviewViewport from "./components/PreviewViewport";
-import { templateStore, resolveTemplate } from "./data/mockTemplates";
+import ProjectExplorer from "./components/ProjectExplorer";
+import CommandPalette from "./components/CommandPalette";
+import { mockTemplates, resolveTemplate } from "./data/mockTemplates";
 
-const initialMessages = [
-  {
-    id: "system-001",
-    role: "system",
-    content:
-      "AURORA is ready. Describe the experience you want to build and the workspace engine will construct it.",
-    timestamp: new Date(),
-  },
-  {
-    id: "assistant-001",
-    role: "assistant",
-    content:
-      "Workspace initialized. I can generate interfaces, restructure layouts, modify visual systems, and produce production-ready frontend code.",
-    timestamp: new Date(),
-  },
-];
+export default function App() {
+  const [started, setStarted] = useState(false);
+  const [mode, setMode] = useState("preview");
 
-function App() {
-  const [messages, setMessages] = useState(initialMessages);
-  const [isStreaming, setIsStreaming] = useState(false);
-  const [activeTemplate, setActiveTemplate] = useState(templateStore[0]);
-  const [sourceCode, setSourceCode] = useState(templateStore[0].code);
-  const [viewport, setViewport] = useState("preview");
-  const [device, setDevice] = useState("desktop");
-  const [toast, setToast] = useState(null);
-  const [engineState, setEngineState] = useState("READY");
-  const [latency, setLatency] = useState(24);
-  const [workspaceName, setWorkspaceName] = useState("Untitled Aurora Project");
+  const [messages, setMessages] = useState([]);
+  const [streaming, setStreaming] = useState(false);
 
-  const showToast = useCallback((message, type = "info") => {
-    setToast({
-      id: Date.now(),
-      message,
-      type,
-    });
+  const [template, setTemplate] = useState(mockTemplates.saas);
 
-    window.setTimeout(() => {
-      setToast(null);
-    }, 3200);
+  const [chatWidth, setChatWidth] = useState(380);
+  const [explorerCollapsed, setExplorerCollapsed] = useState(false);
+
+  const [commandOpen, setCommandOpen] = useState(false);
+  const [status, setStatus] = useState("ready");
+
+  const [homePrompt, setHomePrompt] = useState("");
+
+  const stopRef = useRef(false);
+
+  useEffect(() => {
+    const handleKeyboard = (event) => {
+      if (
+        (event.metaKey || event.ctrlKey) &&
+        event.key.toLowerCase() === "k"
+      ) {
+        event.preventDefault();
+        setCommandOpen(true);
+      }
+
+      if (event.key === "Escape") {
+        setCommandOpen(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyboard);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyboard);
+    };
   }, []);
 
-  const handleTemplateMutation = useCallback(
-    (prompt) => {
-      const resolved = resolveTemplate(prompt);
+  const startBuilding = (prompt) => {
+    const cleanPrompt = prompt.trim();
 
-      if (!resolved) {
-        return false;
-      }
+    if (!cleanPrompt || streaming) return;
 
-      setActiveTemplate(resolved);
-      setSourceCode(resolved.code);
+    setStarted(true);
 
-      return true;
-    },
-    []
-  );
-
-  const submitPrompt = useCallback(
-    async (prompt, attachments = []) => {
-      const cleanPrompt = prompt.trim();
-
-      if (!cleanPrompt || isStreaming) return;
-
-      const userMessage = {
-        id: `user-${Date.now()}`,
+    setMessages((current) => [
+      ...current,
+      {
         role: "user",
         content: cleanPrompt,
-        attachments,
-        timestamp: new Date(),
-      };
+      },
+    ]);
 
-      setMessages((current) => [...current, userMessage]);
-      setIsStreaming(true);
-      setEngineState("PROCESSING");
-      setLatency(Math.floor(Math.random() * 40) + 18);
+    setStreaming(true);
+    setStatus("building");
 
-      const mutated = handleTemplateMutation(cleanPrompt);
+    stopRef.current = false;
 
-      if (mutated) {
-        showToast("Workspace architecture updated", "success");
-      } else {
-        showToast("Aurora is interpreting your request", "info");
-      }
+    const nextTemplate = resolveTemplate(cleanPrompt);
 
-      const responseId = `assistant-${Date.now()}`;
+    /*
+     * This is intentionally isolated.
+     *
+     * Replace this block later with the real AI model request.
+     *
+     * Example future architecture:
+     *
+     * const result = await auroraAgent.generate({
+     *   prompt: cleanPrompt,
+     *   workspace: currentWorkspace
+     * });
+     */
+
+    window.setTimeout(() => {
+      if (stopRef.current) return;
+
+      setTemplate(nextTemplate);
 
       setMessages((current) => [
         ...current,
         {
-          id: responseId,
           role: "assistant",
-          content: "",
-          streaming: true,
-          timestamp: new Date(),
+          content:
+            `I've translated that into a ${nextTemplate.name} workspace.\n\n` +
+            `The initial architecture is now live in the canvas. ` +
+            `I've established the visual hierarchy, generated the first ` +
+            `component surface, and synchronized the preview with the source.`,
+          files: true,
         },
       ]);
 
-      const response = mutated
-        ? `I've reconfigured the workspace around your request and synchronized the live preview with the ${resolveTemplate(
-            cleanPrompt
-          ).name} system.`
-        : "I've interpreted the request and prepared the workspace for the next generation pass.";
+      setStreaming(false);
+      setStatus("ready");
+    }, 1350);
+  };
 
-      let cursor = 0;
+  const stopGeneration = () => {
+    stopRef.current = true;
+    setStreaming(false);
+    setStatus("ready");
+  };
 
-      await new Promise((resolve) => {
-        const interval = window.setInterval(() => {
-          cursor += Math.ceil(Math.random() * 4);
+  const beginResize = () => {
+    const move = (event) => {
+      const nextWidth = window.innerWidth - event.clientX;
 
-          setMessages((current) =>
-            current.map((message) =>
-              message.id === responseId
-                ? {
-                    ...message,
-                    content: response.slice(0, cursor),
-                  }
-                : message
-            )
-          );
-
-          if (cursor >= response.length) {
-            window.clearInterval(interval);
-            resolve();
-          }
-        }, 24);
-      });
-
-      setMessages((current) =>
-        current.map((message) =>
-          message.id === responseId
-            ? {
-                ...message,
-                content: response,
-                streaming: false,
-              }
-            : message
+      setChatWidth(
+        Math.max(
+          300,
+          Math.min(620, nextWidth)
         )
       );
+    };
 
-      setIsStreaming(false);
-      setEngineState("READY");
+    const stop = () => {
+      window.removeEventListener("mousemove", move);
+      window.removeEventListener("mouseup", stop);
+    };
 
-      window.setTimeout(() => {
-        setLatency(Math.floor(Math.random() * 18) + 18);
-      }, 500);
-    },
-    [handleTemplateMutation, isStreaming, showToast]
-  );
+    window.addEventListener("mousemove", move);
+    window.addEventListener("mouseup", stop);
+  };
 
-  const handleRegenerate = useCallback(() => {
-    if (isStreaming) return;
-
-    const latestUserMessage = [...messages]
-      .reverse()
-      .find((message) => message.role === "user");
-
-    if (!latestUserMessage) {
-      showToast("There is no generation to regenerate", "info");
-      return;
+  const handleCommand = (command) => {
+    if (command === "preview") {
+      setMode("preview");
     }
 
-    submitPrompt(latestUserMessage.content, latestUserMessage.attachments || []);
-  }, [isStreaming, messages, showToast, submitPrompt]);
+    if (command === "code") {
+      setMode("code");
+    }
 
-  const handleClearWorkspace = useCallback(() => {
-    setMessages(initialMessages);
-    setActiveTemplate(templateStore[0]);
-    setSourceCode(templateStore[0].code);
-    setViewport("preview");
-    setEngineState("READY");
-    showToast("Workspace reset", "success");
-  }, [showToast]);
+    if (command === "ask") {
+      setTimeout(() => {
+        document.querySelector("textarea")?.focus();
+      }, 100);
+    }
 
-  const workspaceStats = useMemo(
-    () => ({
-      components: activeTemplate.components,
-      tokens: activeTemplate.tokens,
-      lines: sourceCode.split("\n").length,
-    }),
-    [activeTemplate, sourceCode]
-  );
+    if (command === "deploy") {
+      setStatus("building");
+
+      setTimeout(() => {
+        setStatus("ready");
+      }, 1000);
+    }
+  };
+
+  /*
+   * ------------------------------------------------------------
+   * AURORA LANDING EXPERIENCE
+   * ------------------------------------------------------------
+   */
+
+  if (!started) {
+    return (
+      <main className="min-h-screen bg-black text-white relative overflow-hidden technical-grid">
+        <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_35%,rgba(255,18,50,.055),transparent_32%)]" />
+
+        <header className="relative z-10 h-16 px-6 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="aurora-mark">
+              <span />
+            </div>
+
+            <div className="text-xs font-semibold tracking-[.22em]">
+              AURORA
+            </div>
+          </div>
+
+          <div className="text-[9px] text-zinc-700 tracking-[.2em]">
+            AI DEVELOPMENT STUDIO · 02.0
+          </div>
+        </header>
+
+        <section className="relative z-10 min-h-[calc(100vh-64px)] flex flex-col items-center px-5 pt-[13vh]">
+          <div className="text-[10px] uppercase tracking-[.38em] text-[#ff1232] mb-6 animate-aurora-in">
+            Build without the blank page
+          </div>
+
+          <h1 className="text-center text-[clamp(46px,7vw,88px)] font-medium leading-[.91] tracking-[-.065em] max-w-5xl animate-aurora-in">
+            Turn an idea into
+            <br />
+            <span className="text-zinc-500">
+              a living product.
+            </span>
+          </h1>
+
+          <p className="mt-7 text-center max-w-xl text-sm leading-6 text-zinc-600 animate-aurora-in">
+            Describe what you want to build. Aurora architects the
+            workspace, generates the interface, and keeps the canvas
+            and source synchronized.
+          </p>
+
+          <div className="mt-10 w-[min(720px,100%)] rounded-2xl border border-[#29292d] bg-[#09090b]/95 shadow-[0_35px_120px_rgba(0,0,0,.7)] focus-within:border-[#444449] transition-colors animate-aurora-in">
+            <textarea
+              value={homePrompt}
+              onChange={(event) => setHomePrompt(event.target.value)}
+              onKeyDown={(event) => {
+                if (
+                  event.key === "Enter" &&
+                  !event.shiftKey
+                ) {
+                  event.preventDefault();
+                  startBuilding(homePrompt);
+                }
+              }}
+              rows={4}
+              placeholder="Describe the product you're imagining..."
+              className="w-full resize-none bg-transparent outline-none px-5 pt-5 text-sm text-zinc-200 placeholder:text-zinc-700"
+            />
+
+            <div className="px-4 pb-4 flex items-center justify-between">
+              <span className="text-[9px] tracking-wider text-zinc-800">
+                SHIFT + ENTER FOR NEW LINE
+              </span>
+
+              <button
+                disabled={!homePrompt.trim()}
+                onClick={() => startBuilding(homePrompt)}
+                className="h-9 px-4 rounded-lg bg-white text-black text-[11px] font-semibold disabled:opacity-20 hover:bg-zinc-200 interactive"
+              >
+                Build with Aurora →
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-7 flex flex-wrap justify-center gap-2">
+            {[
+              "Institutional crypto terminal",
+              "Cybersecurity command center",
+              "Premium SaaS analytics",
+            ].map((item) => (
+              <button
+                key={item}
+                onClick={() => setHomePrompt(item)}
+                className="px-3 py-2 rounded-lg border border-[#1e1e21] bg-[#070708] text-[10px] text-zinc-600 hover:text-zinc-300 hover:border-[#303036] interactive"
+              >
+                {item}
+              </button>
+            ))}
+          </div>
+
+          <div className="mt-20 w-[min(900px,100%)] border-t border-[#151518] pt-5 flex justify-between text-[9px] text-zinc-800">
+            <span>RECENT WORKSPACES</span>
+            <span>ALL SYSTEMS OPERATIONAL</span>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
+  /*
+   * ------------------------------------------------------------
+   * AURORA STUDIO
+   * ------------------------------------------------------------
+   */
 
   return (
-    <main className="aurora-shell">
+    <main className="h-screen bg-black text-white flex flex-col overflow-hidden">
       <TopBar
-        engineState={engineState}
-        latency={latency}
-        workspaceName={workspaceName}
-        setWorkspaceName={setWorkspaceName}
-        device={device}
-        setDevice={setDevice}
-        workspaceStats={workspaceStats}
-        onClearWorkspace={handleClearWorkspace}
-        showToast={showToast}
+        projectName={template.name}
+        mode={mode}
+        setMode={setMode}
+        status={status}
+        onCommand={() => setCommandOpen(true)}
       />
 
-      <section className="aurora-workspace">
-        <aside className="aurora-chat-column">
-          <ChatPanel
-            messages={messages}
-            isStreaming={isStreaming}
-            onSubmit={submitPrompt}
-            onRegenerate={handleRegenerate}
-            activeTemplate={activeTemplate}
-          />
-        </aside>
+      <div className="flex-1 min-h-0 flex">
+        <ProjectExplorer
+          collapsed={explorerCollapsed}
+          setCollapsed={setExplorerCollapsed}
+        />
 
-        <section className="aurora-preview-column">
-          <PreviewViewport
-            viewport={viewport}
-            setViewport={setViewport}
-            device={device}
-            activeTemplate={activeTemplate}
-            sourceCode={sourceCode}
-            onRefresh={() => {
-              showToast("Preview synchronized", "success");
-            }}
-          />
-        </section>
-      </section>
+        <ChatPanel
+          messages={messages}
+          streaming={streaming}
+          onSubmit={startBuilding}
+          onStop={stopGeneration}
+          width={chatWidth}
+          onResize={beginResize}
+        />
 
-      {toast && (
-        <div
-          key={toast.id}
-          className={`aurora-toast ${
-            toast.type === "success"
-              ? "aurora-toast-success"
-              : toast.type === "error"
-              ? "aurora-toast-error"
-              : ""
-          }`}
-        >
-          <span className="aurora-toast-dot" />
-          <span>{toast.message}</span>
-        </div>
-      )}
+        <PreviewViewport
+          template={template}
+          mode={mode}
+          setMode={setMode}
+        />
+      </div>
+
+      <CommandPalette
+        open={commandOpen}
+        onClose={() => setCommandOpen(false)}
+        onAction={handleCommand}
+      />
     </main>
   );
-}
-
-export default App;
+          }
