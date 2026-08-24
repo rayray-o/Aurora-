@@ -1,6 +1,13 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, {
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+
 import {
   ArrowUp,
+  Code2,
+  File,
   Image,
   Paperclip,
   Plus,
@@ -12,44 +19,43 @@ import {
 
 const suggestions = [
   {
-    title: "Landing page",
+    label: "SaaS dashboard",
     prompt:
-      "Build a premium landing page for a modern creative technology company.",
+      "Build a premium SaaS analytics dashboard with revenue, customers, conversion and activity.",
   },
   {
-    title: "SaaS dashboard",
+    label: "Crypto terminal",
     prompt:
-      "Build a polished SaaS analytics dashboard with revenue, users, activity and conversion metrics.",
+      "Build an institutional crypto trading and portfolio intelligence dashboard.",
   },
   {
-    title: "Portfolio",
+    label: "Security platform",
     prompt:
-      "Build a cinematic portfolio website for an independent film studio.",
+      "Build a cybersecurity command center with threats, incidents, endpoints and risk intelligence.",
   },
   {
-    title: "E-commerce",
+    label: "Portfolio",
     prompt:
-      "Build a premium minimalist storefront for a luxury fashion brand.",
+      "Build a minimal cinematic portfolio for an independent creative studio.",
   },
 ];
 
 export default function ChatPanel({
-  messages = [],
-  streaming = false,
+  messages,
+  streaming,
   onSubmit,
   onStop,
   onOpenPreview,
 }) {
   const [input, setInput] = useState("");
   const [attachments, setAttachments] = useState([]);
+  const [expanded, setExpanded] = useState(false);
   const [enhancing, setEnhancing] = useState(false);
-  const [composerExpanded, setComposerExpanded] =
-    useState(false);
 
   const textareaRef = useRef(null);
   const bottomRef = useRef(null);
 
-  const hasConversation = messages.length > 0;
+  const hasMessages = messages.length > 0;
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({
@@ -58,90 +64,40 @@ export default function ChatPanel({
     });
   }, [messages, streaming]);
 
-  useEffect(() => {
-    const handleKeyboard = (event) => {
-      if (
-        (event.metaKey || event.ctrlKey) &&
-        event.key === "Enter"
-      ) {
-        event.preventDefault();
-
-        if (streaming) {
-          onStop?.();
-        } else {
-          submit();
-        }
-      }
-    };
-
-    window.addEventListener(
-      "keydown",
-      handleKeyboard
-    );
-
-    return () => {
-      window.removeEventListener(
-        "keydown",
-        handleKeyboard
-      );
-    };
-  }, [input, streaming]);
-
   const submit = () => {
-    const value = input.trim();
+    if (!input.trim() || streaming) return;
 
-    if (!value || streaming) {
-      return;
-    }
-
-    onSubmit?.(value);
+    onSubmit(input.trim());
 
     setInput("");
     setAttachments([]);
-    setComposerExpanded(false);
+    setExpanded(false);
   };
 
-  const handleKeyDown = (event) => {
-    if (
-      event.key === "Enter" &&
-      !event.shiftKey
-    ) {
-      event.preventDefault();
-      submit();
-    }
-  };
-
-  const useSuggestion = (prompt) => {
-    setInput(prompt);
-
-    requestAnimationFrame(() => {
-      textareaRef.current?.focus();
-    });
-  };
-
-  const enhancePrompt = () => {
-    if (!input.trim() || enhancing) {
-      return;
-    }
+  const enhance = () => {
+    if (!input.trim() || enhancing) return;
 
     setEnhancing(true);
 
-    window.setTimeout(() => {
+    setTimeout(() => {
       setInput(
-        `${input.trim()}. Make the interface exceptionally polished, responsive, production-ready, and visually refined with strong typography, thoughtful spacing, clear hierarchy, subtle interactions, and excellent mobile behavior.`
+        `${input.trim()}. Make it production-grade with exceptional typography, spacing, responsive behavior, clear hierarchy, polished interactions, and a premium visual system.`
       );
 
       setEnhancing(false);
-    }, 550);
+
+      requestAnimationFrame(() => {
+        textareaRef.current?.focus();
+      });
+    }, 500);
   };
 
   const addAttachment = () => {
     setAttachments((current) => [
       ...current,
       {
-        id: `${Date.now()}-${current.length}`,
-        name: "reference-image.png",
-        type: "image",
+        id: Date.now(),
+        name: `reference-${current.length + 1}.png`,
       },
     ]);
   };
@@ -152,200 +108,152 @@ export default function ChatPanel({
       w-full
       flex
       flex-col
+      bg-black
       relative
       overflow-hidden
-      bg-black
     ">
-
-      {/* Ambient atmosphere */}
-
       <div className="
-        pointer-events-none
         absolute
         inset-0
-        bg-[radial-gradient(circle_at_50%_15%,rgba(255,18,50,.045),transparent_34%)]
+        pointer-events-none
+        technical-grid
+        opacity-[.18]
       " />
 
-      {/* ======================================================
-          EMPTY STATE
-      ====================================================== */}
+      <div className="
+        absolute
+        inset-0
+        pointer-events-none
+        bg-[radial-gradient(circle_at_50%_18%,rgba(183,255,42,.035),transparent_35%)]
+      " />
 
-      {!hasConversation && (
+      {!hasMessages ? (
         <div className="
           relative
-          z-10
+          flex-1
           flex
+          flex-col
           justify-center
+          items-center
           px-5
-          pt-[14vh]
-          md:pt-[17vh]
+          pb-24
         ">
-
-          <div className="
-            text-center
-            max-w-2xl
-            animate-aurora-in
-          ">
-
-            <div className="
-              inline-flex
-              items-center
-              gap-2
-              px-2.5
-              py-1.5
-              rounded-full
-              border
-              border-white/[0.07]
-              bg-white/[0.025]
-              text-[9px]
-              uppercase
-              tracking-[.18em]
-              text-zinc-600
-            ">
-
-              <span className="
-                w-1.5
-                h-1.5
-                rounded-full
-                bg-[#ff1232]
-                shadow-[0_0_10px_rgba(255,18,50,.55)]
-              " />
-
-              AI WEBSITE BUILDER
-
+          <div className="w-full max-w-[760px]">
+            <div className="flex items-center justify-center mb-6">
+              <div className="
+                w-10
+                h-10
+                rounded-xl
+                border
+                border-[#b7ff2a]/[.14]
+                bg-[#b7ff2a]/[.035]
+                grid
+                place-items-center
+              ">
+                <Sparkles
+                  size={17}
+                  className="text-[#b7ff2a]"
+                />
+              </div>
             </div>
 
             <h1 className="
-              mt-7
-              text-[clamp(44px,6vw,76px)]
-              leading-[.92]
-              tracking-[-.065em]
+              text-center
+              text-[clamp(38px,6vw,68px)]
               font-medium
+              tracking-[-.065em]
+              leading-[.94]
             ">
-              What do you want
+              What are we
               <br />
               <span className="text-zinc-600">
-                to build?
+                building?
               </span>
             </h1>
 
             <p className="
-              mt-6
-              mx-auto
               max-w-[540px]
-              text-[13px]
+              mx-auto
+              mt-6
+              text-center
+              text-[12px]
               leading-6
               text-zinc-600
             ">
-              Describe the website you want in plain
-              language. Aurora will turn the idea into
-              an editable interface you can inspect,
-              iterate on, and eventually deploy.
+              Describe the website, product, or interface
+              you have in mind. Start broad or be precise.
+              Aurora will turn the brief into an editable
+              workspace.
             </p>
 
+            <div className="
+              mt-9
+              flex
+              gap-2
+              justify-center
+              flex-wrap
+            ">
+              {suggestions.map((item) => (
+                <button
+                  key={item.label}
+                  onClick={() => {
+                    setInput(item.prompt);
+                    setExpanded(true);
+
+                    requestAnimationFrame(() =>
+                      textareaRef.current?.focus()
+                    );
+                  }}
+                  className="
+                    px-3
+                    py-2
+                    rounded-lg
+                    border
+                    border-white/[.07]
+                    bg-white/[.02]
+                    text-[10px]
+                    text-zinc-600
+                    hover:text-zinc-200
+                    hover:border-white/[.13]
+                    hover:bg-white/[.045]
+                    transition-all
+                  "
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
           </div>
-
         </div>
-      )}
-
-      {/* ======================================================
-          CONVERSATION
-      ====================================================== */}
-
-      <div className="
-        relative
-        z-10
-        flex-1
-        min-h-0
-        overflow-y-auto
-        px-5
-        md:px-8
-      ">
-
-        <div className="
-          max-w-[760px]
-          mx-auto
-          pt-8
-          pb-8
-        ">
-
-          {messages.map((message, index) => (
-            <ConversationMessage
-              key={message.id || index}
-              message={message}
-              onOpenPreview={onOpenPreview}
-            />
-          ))}
-
-          {streaming && (
-            <GenerationProgress />
-          )}
-
-          <div ref={bottomRef} />
-
-        </div>
-
-      </div>
-
-      {/* ======================================================
-          SUGGESTIONS
-      ====================================================== */}
-
-      {!hasConversation && (
+      ) : (
         <div className="
           relative
           z-10
-          w-full
-          max-w-[820px]
-          mx-auto
+          flex-1
+          min-h-0
+          overflow-y-auto
           px-5
-          pb-5
+          md:px-8
         ">
-
           <div className="
-            flex
-            gap-2
-            overflow-x-auto
-            scrollbar-hide
+            max-w-[760px]
+            mx-auto
+            py-10
           ">
-
-            {suggestions.map((suggestion) => (
-              <button
-                key={suggestion.title}
-                type="button"
-                onClick={() =>
-                  useSuggestion(
-                    suggestion.prompt
-                  )
-                }
-                className="
-                  shrink-0
-                  px-3
-                  py-2
-                  rounded-lg
-                  border
-                  border-white/[0.07]
-                  bg-white/[0.02]
-                  text-[10px]
-                  text-zinc-600
-                  hover:text-zinc-200
-                  hover:bg-white/[0.045]
-                  hover:border-white/[0.12]
-                  transition-all
-                "
-              >
-                {suggestion.title}
-              </button>
+            {messages.map((message) => (
+              <Message
+                key={message.id}
+                message={message}
+                onOpenPreview={onOpenPreview}
+              />
             ))}
 
-          </div>
+            {streaming && <StreamingState />}
 
+            <div ref={bottomRef} />
+          </div>
         </div>
       )}
-
-      {/* ======================================================
-          COMPOSER
-      ====================================================== */}
 
       <div className="
         relative
@@ -353,95 +261,61 @@ export default function ChatPanel({
         w-full
         max-w-[820px]
         mx-auto
-        px-5
+        px-4
+        md:px-5
         pb-5
       ">
-
-        <div
-          className={`
-            rounded-2xl
-            border
-            bg-[#09090b]/95
-            backdrop-blur-2xl
-            shadow-[0_20px_80px_rgba(0,0,0,.55)]
-            transition-all
-            ${
-              composerExpanded
-                ? "border-white/[0.13]"
-                : "border-white/[0.08]"
-            }
-          `}
-        >
-
-          {/* Attachments */}
-
+        <div className="
+          rounded-2xl
+          border
+          border-white/[.08]
+          bg-[#09090b]/95
+          backdrop-blur-2xl
+          shadow-[0_30px_100px_rgba(0,0,0,.55)]
+          overflow-hidden
+        ">
           {attachments.length > 0 && (
-            <div className="
-              flex
-              flex-wrap
-              gap-2
-              px-3
-              pt-3
-            ">
+            <div className="flex gap-2 px-3 pt-3">
+              {attachments.map((file) => (
+                <div
+                  key={file.id}
+                  className="
+                    flex
+                    items-center
+                    gap-2
+                    px-2
+                    py-1.5
+                    rounded-lg
+                    border
+                    border-white/[.06]
+                    bg-white/[.025]
+                  "
+                >
+                  <File size={11} className="text-zinc-600" />
 
-              {attachments.map(
-                (attachment) => (
-                  <div
-                    key={attachment.id}
-                    className="
-                      flex
-                      items-center
-                      gap-2
-                      px-2
-                      py-1.5
-                      rounded-lg
-                      border
-                      border-white/[0.07]
-                      bg-white/[0.025]
-                    "
-                  >
+                  <span className="text-[9px] text-zinc-500">
+                    {file.name}
+                  </span>
 
-                    <Image
-                      size={12}
-                      className="text-zinc-600"
-                    />
-
-                    <span className="
-                      text-[9px]
-                      text-zinc-500
-                    ">
-                      {attachment.name}
-                    </span>
-
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setAttachments(
-                          (current) =>
-                            current.filter(
-                              (item) =>
-                                item.id !==
-                                attachment.id
-                            )
+                  <button
+                    onClick={() =>
+                      setAttachments((current) =>
+                        current.filter(
+                          (item) =>
+                            item.id !== file.id
                         )
-                      }
-                      className="
-                        text-zinc-700
-                        hover:text-white
-                        transition-colors
-                      "
-                    >
-                      <X size={10} />
-                    </button>
-
-                  </div>
-                )
-              )}
-
+                      )
+                    }
+                  >
+                    <X
+                      size={10}
+                      className="text-zinc-700 hover:text-white"
+                    />
+                  </button>
+                </div>
+              ))}
             </div>
           )}
-
-          {/* Input */}
 
           <textarea
             ref={textareaRef}
@@ -449,35 +323,35 @@ export default function ChatPanel({
             onChange={(event) =>
               setInput(event.target.value)
             }
-            onKeyDown={handleKeyDown}
-            onFocus={() =>
-              setComposerExpanded(true)
-            }
+            onFocus={() => setExpanded(true)}
+            onKeyDown={(event) => {
+              if (
+                event.key === "Enter" &&
+                !event.shiftKey
+              ) {
+                event.preventDefault();
+                submit();
+              }
+            }}
+            rows={expanded ? 5 : 3}
             placeholder={
-              hasConversation
-                ? "Describe a change..."
+              hasMessages
+                ? "Describe the next change..."
                 : "Describe the website you want to build..."
-            }
-            rows={
-              composerExpanded
-                ? 4
-                : 3
             }
             className="
               w-full
-              resize-none
               bg-transparent
+              resize-none
               outline-none
               px-4
               pt-4
-              text-sm
+              text-[13px]
               leading-6
               text-zinc-200
               placeholder:text-zinc-700
             "
           />
-
-          {/* Composer controls */}
 
           <div className="
             px-3
@@ -486,57 +360,37 @@ export default function ChatPanel({
             items-center
             justify-between
           ">
-
-            <div className="
-              flex
-              items-center
-              gap-1
-            ">
-
+            <div className="flex items-center gap-1">
               <ComposerButton
                 icon={Paperclip}
-                label="Attach"
                 onClick={addAttachment}
               />
 
               <ComposerButton
                 icon={Plus}
-                label="More"
                 onClick={() =>
-                  setComposerExpanded(true)
+                  setExpanded(true)
                 }
               />
 
               <ComposerButton
                 icon={Wand2}
-                label={
-                  enhancing
-                    ? "Enhancing"
-                    : "Enhance prompt"
-                }
-                onClick={enhancePrompt}
                 active={enhancing}
+                onClick={enhance}
               />
-
             </div>
 
-            <div className="
-              flex
-              items-center
-              gap-3
-            ">
-
+            <div className="flex items-center gap-3">
               <span className="
                 hidden
                 sm:block
-                text-[9px]
+                text-[8px]
                 text-zinc-800
               ">
-                ⌘ ENTER
+                SHIFT + ENTER FOR NEW LINE
               </span>
 
               <button
-                type="button"
                 onClick={
                   streaming
                     ? onStop
@@ -555,14 +409,13 @@ export default function ChatPanel({
                   transition-all
                   ${
                     streaming
-                      ? "bg-white/[0.08] text-white hover:bg-white/[0.12]"
+                      ? "bg-white/[.08] text-white"
                       : input.trim()
-                      ? "bg-[#ff1232] text-white shadow-[0_0_25px_rgba(255,18,50,.18)] hover:bg-[#ff2945]"
-                      : "bg-white/[0.04] text-zinc-700"
+                      ? "bg-[#b7ff2a] text-black shadow-[0_0_28px_rgba(183,255,42,.12)] hover:bg-[#c5ff51]"
+                      : "bg-white/[.04] text-zinc-700"
                   }
                 `}
               >
-
                 {streaming ? (
                   <Square
                     size={10}
@@ -571,347 +424,32 @@ export default function ChatPanel({
                 ) : (
                   <ArrowUp size={16} />
                 )}
-
               </button>
-
             </div>
-
           </div>
-
         </div>
 
         <div className="
-          flex
-          justify-center
-          mt-2.5
-          text-[9px]
+          text-center
+          text-[8px]
           text-zinc-800
+          mt-2.5
         ">
-          Aurora can make mistakes. Review generated code before deployment.
+          Describe changes naturally. Aurora keeps your project context.
         </div>
-
       </div>
-
     </div>
   );
 }
-
-
-/* ============================================================
-   CONVERSATION MESSAGE
-============================================================ */
-
-function ConversationMessage({
-  message,
-  onOpenPreview,
-}) {
-  const isUser =
-    message.role === "user";
-
-  return (
-    <div className="
-      mb-8
-      animate-aurora-in
-    ">
-
-      <div className="
-        flex
-        items-center
-        gap-2
-        mb-2.5
-      ">
-
-        <div
-          className={`
-            w-6
-            h-6
-            rounded-lg
-            grid
-            place-items-center
-            border
-            ${
-              isUser
-                ? "bg-white/[0.04] border-white/[0.07]"
-                : "bg-[#160406] border-[#341117]"
-            }
-          `}
-        >
-
-          {isUser ? (
-            <span className="
-              text-[7px]
-              font-semibold
-              text-zinc-500
-            ">
-              YOU
-            </span>
-          ) : (
-            <Sparkles
-              size={12}
-              className="text-[#ff1232]"
-            />
-          )}
-
-        </div>
-
-        <span className="
-          text-[9px]
-          uppercase
-          tracking-[.18em]
-          text-zinc-700
-        ">
-          {isUser ? "You" : "Aurora"}
-        </span>
-
-      </div>
-
-      <div
-        className={`
-          text-[13px]
-          leading-6
-          whitespace-pre-wrap
-          ${
-            isUser
-              ? "text-zinc-300"
-              : "text-zinc-400"
-          }
-        `}
-      >
-        {message.content}
-      </div>
-
-      {message.generation && (
-        <button
-          type="button"
-          onClick={onOpenPreview}
-          className="
-            mt-4
-            w-full
-            max-w-[560px]
-            rounded-xl
-            border
-            border-white/[0.07]
-            bg-[#080809]
-            p-3
-            text-left
-            hover:border-white/[0.13]
-            hover:bg-[#0c0c0e]
-            transition-all
-            group
-          "
-        >
-
-          <div className="
-            flex
-            items-center
-            gap-3
-          ">
-
-            <div className="
-              w-9
-              h-9
-              rounded-lg
-              bg-[#111114]
-              border
-              border-white/[0.06]
-              grid
-              place-items-center
-            ">
-              <Sparkles
-                size={14}
-                className="
-                  text-[#ff1232]
-                  group-hover:scale-110
-                  transition-transform
-                "
-              />
-            </div>
-
-            <div className="flex-1 min-w-0">
-
-              <div className="
-                text-[11px]
-                text-zinc-300
-                truncate
-              ">
-                {message.generation.template}
-              </div>
-
-              <div className="
-                text-[9px]
-                text-zinc-700
-                mt-1
-              ">
-                Generated website · Open preview
-              </div>
-
-            </div>
-
-            <ArrowUp
-              size={13}
-              className="
-                rotate-45
-                text-zinc-700
-                group-hover:text-white
-                transition-colors
-              "
-            />
-
-          </div>
-
-        </button>
-      )}
-
-    </div>
-  );
-}
-
-
-/* ============================================================
-   GENERATION PROGRESS
-============================================================ */
-
-function GenerationProgress() {
-  const stages = [
-    "Understanding request",
-    "Planning page structure",
-    "Generating interface",
-    "Preparing preview",
-  ];
-
-  return (
-    <div className="
-      mb-8
-      animate-aurora-in
-    ">
-
-      <div className="
-        flex
-        items-center
-        gap-2
-        mb-4
-      ">
-
-        <div className="
-          w-6
-          h-6
-          rounded-lg
-          bg-[#160406]
-          border
-          border-[#341117]
-          grid
-          place-items-center
-        ">
-          <Sparkles
-            size={12}
-            className="text-[#ff1232]"
-          />
-        </div>
-
-        <span className="
-          text-[10px]
-          uppercase
-          tracking-[.18em]
-          text-zinc-600
-        ">
-          Aurora is building
-        </span>
-
-      </div>
-
-      <div className="
-        max-w-[460px]
-        rounded-xl
-        border
-        border-white/[0.07]
-        bg-[#080809]
-        p-4
-      ">
-
-        <div className="space-y-3">
-
-          {stages.map(
-            (stage, index) => (
-              <div
-                key={stage}
-                className="
-                  flex
-                  items-center
-                  gap-3
-                "
-              >
-
-                <span
-                  className={`
-                    w-1.5
-                    h-1.5
-                    rounded-full
-                    ${
-                      index === 2
-                        ? "bg-[#ff1232] animate-pulse"
-                        : index < 2
-                        ? "bg-zinc-500"
-                        : "bg-zinc-800"
-                    }
-                  `}
-                />
-
-                <span
-                  className={`
-                    text-[10px]
-                    ${
-                      index <= 2
-                        ? "text-zinc-400"
-                        : "text-zinc-800"
-                    }
-                  `}
-                >
-                  {stage}
-                </span>
-
-              </div>
-            )
-          )}
-
-        </div>
-
-        <div className="
-          mt-4
-          h-px
-          bg-[#18181b]
-          overflow-hidden
-        ">
-          <div className="
-            h-full
-            w-1/3
-            bg-[#ff1232]
-            shadow-[0_0_12px_rgba(255,18,50,.5)]
-            animate-aurora-progress
-          " />
-        </div>
-
-      </div>
-
-    </div>
-  );
-}
-
-
-/* ============================================================
-   COMPOSER BUTTON
-============================================================ */
 
 function ComposerButton({
   icon: Icon,
-  label,
   onClick,
-  active = false,
+  active,
 }) {
   return (
     <button
-      type="button"
       onClick={onClick}
-      title={label}
       className={`
         w-8
         h-8
@@ -921,12 +459,173 @@ function ComposerButton({
         transition-all
         ${
           active
-            ? "text-[#ff1232] bg-[#18070a]"
-            : "text-zinc-700 hover:text-zinc-300 hover:bg-white/[0.04]"
+            ? "text-[#b7ff2a] bg-[#b7ff2a]/[.06]"
+            : "text-zinc-700 hover:text-zinc-300 hover:bg-white/[.04]"
         }
       `}
     >
       <Icon size={14} />
     </button>
   );
-           }
+}
+
+function Message({
+  message,
+  onOpenPreview,
+}) {
+  const user = message.role === "user";
+
+  return (
+    <article className="
+      mb-9
+      animate-aurora-in
+    ">
+      <div className="
+        flex
+        items-center
+        gap-2
+        mb-3
+      ">
+        <div className={`
+          w-6
+          h-6
+          rounded-lg
+          border
+          grid
+          place-items-center
+          ${
+            user
+              ? "border-white/[.07] bg-white/[.025]"
+              : "border-[#b7ff2a]/[.13] bg-[#b7ff2a]/[.035]"
+          }
+        `}>
+          {user ? (
+            <span className="text-[7px] text-zinc-600 font-semibold">
+              YOU
+            </span>
+          ) : (
+            <Sparkles
+              size={12}
+              className="text-[#b7ff2a]"
+            />
+          )}
+        </div>
+
+        <span className="text-[9px] uppercase tracking-[.18em] text-zinc-700">
+          {user ? "You" : "Aurora"}
+        </span>
+      </div>
+
+      <div className={`
+        text-[13px]
+        leading-7
+        whitespace-pre-wrap
+        ${
+          user
+            ? "text-zinc-300"
+            : "text-zinc-400"
+        }
+      `}>
+        {message.content}
+      </div>
+
+      {message.generation && (
+        <button
+          onClick={onOpenPreview}
+          className="
+            mt-4
+            w-full
+            max-w-[560px]
+            p-3
+            rounded-xl
+            border
+            border-white/[.07]
+            bg-white/[.018]
+            text-left
+            hover:border-[#b7ff2a]/[.16]
+            hover:bg-[#b7ff2a]/[.025]
+            transition-all
+          "
+        >
+          <div className="flex items-center gap-3">
+            <div className="
+              w-9
+              h-9
+              rounded-lg
+              border
+              border-[#b7ff2a]/[.1]
+              bg-[#b7ff2a]/[.035]
+              grid
+              place-items-center
+            ">
+              <Code2
+                size={14}
+                className="text-[#b7ff2a]"
+              />
+            </div>
+
+            <div className="flex-1 min-w-0">
+              <div className="text-[11px] text-zinc-300">
+                {message.generation.template}
+              </div>
+
+              <div className="text-[9px] text-zinc-700 mt-1">
+                Generated workspace · Open preview
+              </div>
+            </div>
+          </div>
+        </button>
+      )}
+    </article>
+  );
+}
+
+function StreamingState() {
+  return (
+    <div className="
+      flex
+      items-center
+      gap-3
+      py-3
+      animate-aurora-in
+    ">
+      <div className="
+        w-6
+        h-6
+        rounded-lg
+        border
+        border-[#b7ff2a]/[.12]
+        bg-[#b7ff2a]/[.03]
+        grid
+        place-items-center
+      ">
+        <Sparkles
+          size={12}
+          className="text-[#b7ff2a] animate-aurora-pulse"
+        />
+      </div>
+
+      <div>
+        <div className="text-[10px] text-zinc-400">
+          Building your workspace
+        </div>
+
+        <div className="
+          mt-1
+          w-44
+          h-[2px]
+          bg-white/[.04]
+          overflow-hidden
+          rounded-full
+        ">
+          <div className="
+            w-1/3
+            h-full
+            bg-[#b7ff2a]
+            animate-aurora-progress
+          " />
+        </div>
+      </div>
+    </div>
+  );
+              }
