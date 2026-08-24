@@ -1,6 +1,10 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, {
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+
 import {
-  ArrowLeft,
   ArrowRight,
   Command,
   Eye,
@@ -13,41 +17,74 @@ import {
 
 import ChatPanel from "./components/ChatPanel";
 import PreviewViewport from "./components/PreviewViewport";
-import { mockTemplates, resolveTemplate } from "./data/mockTemplates";
+
+import {
+  mockTemplates,
+  resolveTemplate,
+} from "./data/mockTemplates";
+
 
 export default function App() {
-  const [surface, setSurface] = useState("chat");
-  const [messages, setMessages] = useState([]);
-  const [streaming, setStreaming] = useState(false);
+  const [surface, setSurface] =
+    useState("chat");
 
-  const [template, setTemplate] = useState(
-    mockTemplates.saas
-  );
+  const [previewMode, setPreviewMode] =
+    useState("preview");
 
-  const [projectName, setProjectName] = useState(
-    "Untitled website"
-  );
+  const [messages, setMessages] =
+    useState([]);
 
-  const [historyOpen, setHistoryOpen] = useState(false);
+  const [streaming, setStreaming] =
+    useState(false);
 
-  const [toast, setToast] = useState(null);
+  const [template, setTemplate] =
+    useState(mockTemplates.saas);
 
-  const [dragging, setDragging] = useState(false);
+  const [projectName, setProjectName] =
+    useState("Untitled website");
+
+  const [historyOpen, setHistoryOpen] =
+    useState(false);
+
+  const [toast, setToast] =
+    useState(null);
+
+  const [dragging, setDragging] =
+    useState(false);
 
   const startX = useRef(0);
   const currentX = useRef(0);
 
+  const generationTimer =
+    useRef(null);
+
+  const toastTimer =
+    useRef(null);
+
+
+  /* ==========================================================
+     TOAST
+  ========================================================== */
+
   const showToast = (message) => {
     setToast(message);
 
-    window.clearTimeout(
-      showToast.timeout
-    );
+    if (toastTimer.current) {
+      window.clearTimeout(
+        toastTimer.current
+      );
+    }
 
-    showToast.timeout = window.setTimeout(() => {
-      setToast(null);
-    }, 2200);
+    toastTimer.current =
+      window.setTimeout(() => {
+        setToast(null);
+      }, 2200);
   };
+
+
+  /* ==========================================================
+     PREVIEW
+  ========================================================== */
 
   const openPreview = () => {
     setSurface("preview");
@@ -57,63 +94,110 @@ export default function App() {
     setSurface("chat");
   };
 
+
+  /* ==========================================================
+     GENERATION
+  ========================================================== */
+
   const submitPrompt = (prompt) => {
-    if (!prompt.trim() || streaming) {
+    if (
+      !prompt.trim() ||
+      streaming
+    ) {
       return;
     }
 
-    const cleanPrompt = prompt.trim();
+    const cleanPrompt =
+      prompt.trim();
 
-    if (projectName === "Untitled website") {
-      setProjectName(
+    if (
+      projectName ===
+      "Untitled website"
+    ) {
+      const generatedName =
         cleanPrompt
           .split(/\s+/)
           .slice(0, 5)
           .join(" ")
-          .replace(/[.!?]+$/, "")
+          .replace(/[.!?]+$/, "");
+
+      setProjectName(
+        generatedName ||
+          "Untitled website"
       );
     }
 
-    setMessages((current) => [
-      ...current,
-      {
-        id: crypto.randomUUID(),
-        role: "user",
-        content: cleanPrompt,
-      },
-    ]);
+    setMessages(
+      (current) => [
+        ...current,
+        {
+          id:
+            `${Date.now()}-user`,
+          role: "user",
+          content: cleanPrompt,
+        },
+      ]
+    );
 
     setStreaming(true);
 
     const nextTemplate =
-      resolveTemplate(cleanPrompt);
-
-    window.setTimeout(() => {
-      setTemplate(nextTemplate);
-
-      setMessages((current) => [
-        ...current,
-        {
-          id: crypto.randomUUID(),
-          role: "assistant",
-          content:
-            "I've generated the first version of your website. " +
-            "The preview is ready whenever you want to inspect it.",
-          generation: {
-            template: nextTemplate.name,
-          },
-        },
-      ]);
-
-      setStreaming(false);
-
-      showToast(
-        "Website generated · Preview ready"
+      resolveTemplate(
+        cleanPrompt
       );
-    }, 1450);
+
+    if (generationTimer.current) {
+      window.clearTimeout(
+        generationTimer.current
+      );
+    }
+
+    generationTimer.current =
+      window.setTimeout(() => {
+        setTemplate(
+          nextTemplate
+        );
+
+        setMessages(
+          (current) => [
+            ...current,
+            {
+              id:
+                `${Date.now()}-assistant`,
+              role: "assistant",
+              content:
+                "I've generated the first version of your website. The preview is ready whenever you want to inspect it.",
+              generation: {
+                template:
+                  nextTemplate.name,
+              },
+            },
+          ]
+        );
+
+        setStreaming(false);
+
+        showToast(
+          "Website generated · Preview ready"
+        );
+      }, 1450);
   };
 
+
+  /* ==========================================================
+     STOP
+  ========================================================== */
+
   const stopGeneration = () => {
+    if (generationTimer.current) {
+      window.clearTimeout(
+        generationTimer.current
+      );
+
+      generationTimer.current =
+        null;
+    }
+
     setStreaming(false);
 
     showToast(
@@ -121,21 +205,33 @@ export default function App() {
     );
   };
 
-  /*
-   * --------------------------------------------------------
-   * HORIZONTAL SURFACE GESTURE
-   * --------------------------------------------------------
-   */
+
+  /* ==========================================================
+     CLEANUP
+  ========================================================== */
+
+  useEffect(() => {
+    return () => {
+      if (generationTimer.current) {
+        window.clearTimeout(
+          generationTimer.current
+        );
+      }
+
+      if (toastTimer.current) {
+        window.clearTimeout(
+          toastTimer.current
+        );
+      }
+    };
+  }, []);
+
+
+  /* ==========================================================
+     SWIPE
+  ========================================================== */
 
   const beginSwipe = (event) => {
-    if (event.pointerType === "mouse") {
-      /*
-       * Mouse dragging is intentionally supported,
-       * but normal clicks should not accidentally
-       * switch surfaces.
-       */
-    }
-
     startX.current =
       event.clientX;
 
@@ -144,31 +240,37 @@ export default function App() {
 
     setDragging(true);
 
-    event.currentTarget.setPointerCapture?.(
-      event.pointerId
-    );
+    try {
+      event.currentTarget.setPointerCapture(
+        event.pointerId
+      );
+    } catch {
+      // Pointer capture is not available
+      // in every browser environment.
+    }
   };
 
+
   const moveSwipe = (event) => {
-    if (!dragging) return;
+    if (!dragging) {
+      return;
+    }
 
     currentX.current =
       event.clientX;
   };
 
+
   const endSwipe = () => {
-    if (!dragging) return;
+    if (!dragging) {
+      return;
+    }
 
     const distance =
       currentX.current -
       startX.current;
 
     setDragging(false);
-
-    /*
-     * Right -> left
-     * means opening preview.
-     */
 
     if (
       distance < -70 &&
@@ -178,11 +280,6 @@ export default function App() {
       return;
     }
 
-    /*
-     * Left -> right
-     * means returning to chat.
-     */
-
     if (
       distance > 70 &&
       surface === "preview"
@@ -191,49 +288,63 @@ export default function App() {
     }
   };
 
+
+  /* ==========================================================
+     KEYBOARD NAVIGATION
+  ========================================================== */
+
   useEffect(() => {
-    const keyboard = (event) => {
-      if (
-        event.key === "Escape" &&
-        surface === "preview"
-      ) {
-        closePreview();
-      }
+    const handleKeyboard =
+      (event) => {
+        if (
+          event.key === "Escape" &&
+          surface === "preview"
+        ) {
+          closePreview();
+        }
 
-      if (
-        event.key === "ArrowRight" &&
-        surface === "chat"
-      ) {
-        openPreview();
-      }
+        if (
+          event.key === "ArrowRight" &&
+          surface === "chat"
+        ) {
+          openPreview();
+        }
 
-      if (
-        event.key === "ArrowLeft" &&
-        surface === "preview"
-      ) {
-        closePreview();
-      }
-    };
+        if (
+          event.key === "ArrowLeft" &&
+          surface === "preview"
+        ) {
+          closePreview();
+        }
+      };
 
     window.addEventListener(
       "keydown",
-      keyboard
+      handleKeyboard
     );
 
     return () => {
       window.removeEventListener(
         "keydown",
-        keyboard
+        handleKeyboard
       );
     };
   }, [surface]);
 
-  return (
-    <main className="h-[100dvh] w-full bg-black text-white overflow-hidden select-none">
 
-      {/* --------------------------------------------------
-          GLOBAL TOP BAR
-      -------------------------------------------------- */}
+  return (
+    <main className="
+      h-[100dvh]
+      w-full
+      bg-black
+      text-white
+      overflow-hidden
+      select-none
+    ">
+
+      {/* ======================================================
+          TOP BAR
+      ====================================================== */}
 
       <header className="
         absolute
@@ -256,12 +367,20 @@ export default function App() {
           flex
           items-center
           gap-3
+          min-w-0
         ">
 
           <button
+            type="button"
+            onClick={() =>
+              setHistoryOpen(
+                (value) => !value
+              )
+            }
             className="
               w-8
               h-8
+              shrink-0
               rounded-lg
               border
               border-white/[0.07]
@@ -273,11 +392,6 @@ export default function App() {
               hover:bg-white/[0.05]
               transition-all
             "
-            onClick={() =>
-              setHistoryOpen(
-                (value) => !value
-              )
-            }
           >
             <Menu size={15} />
           </button>
@@ -286,6 +400,7 @@ export default function App() {
             flex
             items-center
             gap-2.5
+            shrink-0
           ">
 
             <div className="
@@ -298,7 +413,6 @@ export default function App() {
               grid
               place-items-center
             ">
-
               <span className="
                 w-[7px]
                 h-[7px]
@@ -306,7 +420,6 @@ export default function App() {
                 bg-[#ff1232]
                 shadow-[0_0_12px_rgba(255,18,50,.6)]
               " />
-
             </div>
 
             <span className="
@@ -323,25 +436,34 @@ export default function App() {
             h-4
             w-px
             bg-white/[0.07]
+            shrink-0
           " />
 
           <div className="
-            flex
+            hidden
+            sm:flex
             items-center
             gap-2
             text-[10px]
             text-zinc-600
+            min-w-0
           ">
 
             <Globe size={11} />
 
-            <span className="max-w-[180px] truncate">
+            <span className="
+              max-w-[180px]
+              truncate
+            ">
               {projectName}
             </span>
 
           </div>
 
         </div>
+
+
+        {/* Center switcher */}
 
         <div className="
           absolute
@@ -358,6 +480,7 @@ export default function App() {
         ">
 
           <button
+            type="button"
             onClick={closePreview}
             className={`
               h-7
@@ -368,7 +491,6 @@ export default function App() {
               items-center
               gap-1.5
               transition-all
-
               ${
                 surface === "chat"
                   ? "bg-white/[0.07] text-white"
@@ -381,6 +503,7 @@ export default function App() {
           </button>
 
           <button
+            type="button"
             onClick={openPreview}
             className={`
               h-7
@@ -391,7 +514,6 @@ export default function App() {
               items-center
               gap-1.5
               transition-all
-
               ${
                 surface === "preview"
                   ? "bg-white/[0.07] text-white"
@@ -405,6 +527,9 @@ export default function App() {
 
         </div>
 
+
+        {/* Right controls */}
+
         <div className="
           flex
           items-center
@@ -412,45 +537,56 @@ export default function App() {
         ">
 
           <button
+            type="button"
+            title="Command palette"
             className="
+              hidden
+              sm:grid
               w-8
               h-8
               rounded-lg
-              grid
               place-items-center
               text-zinc-600
               hover:text-white
               hover:bg-white/[0.04]
               transition-all
             "
-            title="Command palette"
           >
             <Command size={14} />
           </button>
 
           <button
+            type="button"
+            title="History"
+            onClick={() =>
+              setHistoryOpen(
+                (value) => !value
+              )
+            }
             className="
+              hidden
+              sm:grid
               w-8
               h-8
               rounded-lg
-              grid
               place-items-center
               text-zinc-600
               hover:text-white
               hover:bg-white/[0.04]
               transition-all
             "
-            title="History"
           >
             <History size={14} />
           </button>
 
           <button
+            type="button"
             className="
+              hidden
+              sm:grid
               w-8
               h-8
               rounded-lg
-              grid
               place-items-center
               text-zinc-600
               hover:text-white
@@ -462,6 +598,7 @@ export default function App() {
           </button>
 
           <button
+            type="button"
             onClick={() =>
               showToast(
                 "Deployment pipeline coming next"
@@ -487,9 +624,10 @@ export default function App() {
 
       </header>
 
-      {/* --------------------------------------------------
-          WORKSPACE TRACK
-      -------------------------------------------------- */}
+
+      {/* ======================================================
+          TWO-SURFACE WORKSPACE
+      ====================================================== */}
 
       <div
         className="
@@ -498,6 +636,9 @@ export default function App() {
           overflow-hidden
           pt-[58px]
         "
+        style={{
+          touchAction: "pan-y",
+        }}
         onPointerDown={beginSwipe}
         onPointerMove={moveSwipe}
         onPointerUp={endSwipe}
@@ -510,13 +651,11 @@ export default function App() {
             w-[200vw]
             flex
             will-change-transform
-
             ${
               dragging
                 ? "transition-none"
                 : "transition-transform duration-[650ms] ease-[cubic-bezier(.22,1,.36,1)]"
             }
-
             ${
               surface === "preview"
                 ? "-translate-x-1/2"
@@ -525,7 +664,7 @@ export default function App() {
           `}
         >
 
-          {/* CHAT SURFACE */}
+          {/* CHAT */}
 
           <section className="
             w-screen
@@ -553,19 +692,18 @@ export default function App() {
               gap-2
               text-[9px]
               text-zinc-800
+              pointer-events-none
             ">
-
               <ArrowRight size={11} />
-
               <span>
                 SWIPE TO PREVIEW
               </span>
-
             </div>
 
           </section>
 
-          {/* PREVIEW SURFACE */}
+
+          {/* PREVIEW */}
 
           <section className="
             w-screen
@@ -576,6 +714,8 @@ export default function App() {
 
             <PreviewViewport
               template={template}
+              mode={previewMode}
+              setMode={setPreviewMode}
               onBack={closePreview}
             />
 
@@ -585,9 +725,10 @@ export default function App() {
 
       </div>
 
-      {/* --------------------------------------------------
-          LEFT HISTORY DRAWER
-      -------------------------------------------------- */}
+
+      {/* ======================================================
+          HISTORY DRAWER
+      ====================================================== */}
 
       <div
         className={`
@@ -605,7 +746,6 @@ export default function App() {
           transition-transform
           duration-500
           ease-[cubic-bezier(.22,1,.36,1)]
-
           ${
             historyOpen
               ? "translate-x-0"
@@ -632,6 +772,7 @@ export default function App() {
             mt-2
             text-sm
             text-zinc-300
+            truncate
           ">
             {projectName}
           </div>
@@ -651,16 +792,19 @@ export default function App() {
             Recent
           </div>
 
-          <button className="
-            w-full
-            text-left
-            px-3
-            py-2.5
-            rounded-lg
-            bg-white/[0.035]
-            text-[10px]
-            text-zinc-300
-          ">
+          <button
+            type="button"
+            className="
+              w-full
+              text-left
+              px-3
+              py-2.5
+              rounded-lg
+              bg-white/[0.035]
+              text-[10px]
+              text-zinc-300
+            "
+          >
             {projectName}
           </button>
 
@@ -668,9 +812,10 @@ export default function App() {
 
       </div>
 
-      {/* --------------------------------------------------
+
+      {/* ======================================================
           TOAST
-      -------------------------------------------------- */}
+      ====================================================== */}
 
       {toast && (
         <div className="
@@ -697,4 +842,4 @@ export default function App() {
 
     </main>
   );
-    }
+        }
