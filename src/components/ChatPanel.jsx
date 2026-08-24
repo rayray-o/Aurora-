@@ -1,375 +1,613 @@
-import React, { useEffect, useRef, useState } from "react";
-import {
-  ArrowUp,
-  ChevronDown,
-  Image,
-  Paperclip,
-  Plus,
-  Sparkles,
-  Square,
-  Wand2,
-  X,
-} from "lucide-react";
+@import "tailwindcss";
 
-const suggestions = [
-  {
-    title: "Landing page",
-    prompt:
-      "Build a premium landing page for a modern creative technology company.",
-  },
-  {
-    title: "SaaS dashboard",
-    prompt:
-      "Build a polished SaaS analytics dashboard with revenue, users, activity and conversion metrics.",
-  },
-  {
-    title: "Portfolio",
-    prompt:
-      "Build a cinematic portfolio website for an independent film studio.",
-  },
-  {
-    title: "E-commerce",
-    prompt:
-      "Build a premium minimalist storefront for a luxury fashion brand.",
-  },
-];
+/* ============================================================
+   AURORA — GLOBAL DESIGN SYSTEM
+============================================================ */
 
-export default function ChatPanel({
-  messages,
-  streaming,
-  onSubmit,
-  onStop,
-  onOpenPreview,
-}) {
-  const [input, setInput] = useState("");
-  const [attachments, setAttachments] = useState([]);
-  const [enhancing, setEnhancing] = useState(false);
-  const [composerExpanded, setComposerExpanded] =
-    useState(false);
+:root {
+  --aurora-black: #000000;
+  --aurora-surface-1: #09090b;
+  --aurora-surface-2: #121214;
+  --aurora-surface-3: #18181b;
 
-  const textareaRef = useRef(null);
-  const bottomRef = useRef(null);
+  --aurora-border: #1e1e21;
+  --aurora-border-soft: rgba(255, 255, 255, 0.07);
+  --aurora-border-hover: rgba(255, 255, 255, 0.12);
 
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({
-      behavior: "smooth",
-      block: "nearest",
-    });
-  }, [messages, streaming]);
+  --aurora-white: #ffffff;
+  --aurora-text: #d4d4d8;
+  --aurora-muted: #71717a;
+  --aurora-dim: #52525b;
+  --aurora-ghost: #27272a;
 
-  useEffect(() => {
-    const handleKeyboard = (event) => {
-      if (
-        (event.metaKey || event.ctrlKey) &&
-        event.key === "Enter"
-      ) {
-        event.preventDefault();
+  --aurora-red: #ff1232;
+  --aurora-red-hover: #ff2945;
+  --aurora-red-dark: #160406;
 
-        if (streaming) {
-          onStop?.();
-        } else {
-          submit();
-        }
-      }
-    };
+  --aurora-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --aurora-ease-soft: cubic-bezier(0.16, 1, 0.3, 1);
+}
 
-    window.addEventListener(
-      "keydown",
-      handleKeyboard
+
+/* ============================================================
+   BASE RESET
+============================================================ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  width: 100%;
+  height: 100%;
+  background: var(--aurora-black);
+  color-scheme: dark;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  width: 100%;
+  min-width: 320px;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+
+  background: var(--aurora-black);
+  color: var(--aurora-white);
+
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
+  overflow: hidden;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+  min-height: 100dvh;
+}
+
+
+/* ============================================================
+   TEXT SELECTION
+============================================================ */
+
+::selection {
+  background: rgba(255, 18, 50, 0.24);
+  color: #ffffff;
+}
+
+::-moz-selection {
+  background: rgba(255, 18, 50, 0.24);
+  color: #ffffff;
+}
+
+
+/* ============================================================
+   SCROLLBARS
+============================================================ */
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #242428 transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #242428;
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: #36363b;
+}
+
+
+/* ============================================================
+   HIDE SCROLLBAR UTILITY
+============================================================ */
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+
+/* ============================================================
+   AURORA TRANSITIONS
+============================================================ */
+
+.aurora-transition {
+  transition:
+    color 420ms var(--aurora-ease),
+    background-color 420ms var(--aurora-ease),
+    border-color 420ms var(--aurora-ease),
+    box-shadow 420ms var(--aurora-ease),
+    opacity 420ms var(--aurora-ease),
+    transform 420ms var(--aurora-ease);
+}
+
+.aurora-transition-fast {
+  transition:
+    color 180ms var(--aurora-ease),
+    background-color 180ms var(--aurora-ease),
+    border-color 180ms var(--aurora-ease),
+    opacity 180ms var(--aurora-ease),
+    transform 180ms var(--aurora-ease);
+}
+
+.aurora-transition-slow {
+  transition:
+    color 700ms var(--aurora-ease),
+    background-color 700ms var(--aurora-ease),
+    border-color 700ms var(--aurora-ease),
+    box-shadow 700ms var(--aurora-ease),
+    opacity 700ms var(--aurora-ease),
+    transform 700ms var(--aurora-ease);
+}
+
+
+/* ============================================================
+   INTRO / FADE ANIMATION
+============================================================ */
+
+@keyframes aurora-in {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-aurora-in {
+  animation:
+    aurora-in
+    560ms
+    var(--aurora-ease)
+    both;
+}
+
+
+/* ============================================================
+   SOFT APPEAR
+============================================================ */
+
+@keyframes aurora-fade {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+.animate-aurora-fade {
+  animation:
+    aurora-fade
+    500ms
+    ease
+    both;
+}
+
+
+/* ============================================================
+   SCALE APPEAR
+============================================================ */
+
+@keyframes aurora-scale-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-aurora-scale-in {
+  animation:
+    aurora-scale-in
+    480ms
+    var(--aurora-ease)
+    both;
+}
+
+
+/* ============================================================
+   RED STATUS PULSE
+============================================================ */
+
+@keyframes aurora-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(0.92);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-aurora-pulse {
+  animation:
+    aurora-pulse
+    1.8s
+    ease-in-out
+    infinite;
+}
+
+
+/* ============================================================
+   GENERATION PROGRESS
+============================================================ */
+
+@keyframes aurora-progress {
+  0% {
+    transform: translateX(-120%);
+  }
+
+  100% {
+    transform: translateX(420%);
+  }
+}
+
+.animate-aurora-progress {
+  animation:
+    aurora-progress
+    1.5s
+    ease-in-out
+    infinite;
+}
+
+
+/* ============================================================
+   SHIMMER
+============================================================ */
+
+@keyframes aurora-shimmer {
+  0% {
+    background-position:
+      200% 0;
+  }
+
+  100% {
+    background-position:
+      -200% 0;
+  }
+}
+
+.aurora-shimmer {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.025),
+      rgba(255, 255, 255, 0.07),
+      rgba(255, 255, 255, 0.025)
     );
 
-    return () => {
-      window.removeEventListener(
-        "keydown",
-        handleKeyboard
-      );
-    };
-  }, [input, streaming]);
+  background-size: 200% 100%;
 
-  const submit = () => {
-    const value = input.trim();
+  animation:
+    aurora-shimmer
+    2s
+    linear
+    infinite;
+}
 
-    if (!value || streaming) {
-      return;
+
+/* ============================================================
+   RED GLOW
+============================================================ */
+
+.aurora-red-glow {
+  box-shadow:
+    0 0 0 1px rgba(255, 18, 50, 0.05),
+    0 0 24px rgba(255, 18, 50, 0.08);
+}
+
+.aurora-red-glow-strong {
+  box-shadow:
+    0 0 0 1px rgba(255, 18, 50, 0.08),
+    0 0 32px rgba(255, 18, 50, 0.16);
+}
+
+
+/* ============================================================
+   TECHNICAL HAIRLINE
+============================================================ */
+
+.aurora-hairline {
+  height: 1px;
+  width: 100%;
+  background: var(--aurora-border);
+}
+
+.aurora-hairline-soft {
+  height: 1px;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+
+/* ============================================================
+   GLASS SURFACE
+============================================================ */
+
+.aurora-glass {
+  background:
+    rgba(9, 9, 11, 0.78);
+
+  backdrop-filter:
+    blur(24px)
+    saturate(120%);
+
+  -webkit-backdrop-filter:
+    blur(24px)
+    saturate(120%);
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.07);
+}
+
+
+/* ============================================================
+   INPUTS
+============================================================ */
+
+textarea,
+input,
+button {
+  font: inherit;
+}
+
+textarea {
+  caret-color: var(--aurora-red);
+}
+
+input {
+  caret-color: var(--aurora-red);
+}
+
+textarea::placeholder,
+input::placeholder {
+  color: #3f3f46;
+  opacity: 1;
+}
+
+
+/* ============================================================
+   BUTTON RESET
+============================================================ */
+
+button {
+  border: 0;
+  margin: 0;
+  padding: 0;
+
+  font: inherit;
+
+  cursor: pointer;
+
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:disabled {
+  cursor: default;
+}
+
+
+/* ============================================================
+   FOCUS STATES
+============================================================ */
+
+button:focus-visible,
+textarea:focus-visible,
+input:focus-visible {
+  outline: 1px solid rgba(255, 18, 50, 0.55);
+  outline-offset: 2px;
+}
+
+
+/* ============================================================
+   POINTER / TOUCH BEHAVIOR
+============================================================ */
+
+button,
+a {
+  touch-action: manipulation;
+}
+
+textarea {
+  touch-action: auto;
+}
+
+
+/* ============================================================
+   HORIZONTAL AURORA WORKSPACE
+============================================================ */
+
+.aurora-workspace {
+  width: 200vw;
+  height: 100%;
+  display: flex;
+
+  will-change: transform;
+
+  transform: translate3d(
+    0,
+    0,
+    0
+  );
+
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.aurora-workspace-surface {
+  width: 100vw;
+  height: 100%;
+  flex-shrink: 0;
+
+  position: relative;
+
+  overflow: hidden;
+
+  transform:
+    translate3d(
+      0,
+      0,
+      0
+    );
+}
+
+
+/* ============================================================
+   GPU ACCELERATION
+============================================================ */
+
+.aurora-gpu {
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+
+/* ============================================================
+   PREVENT MOBILE OVERSCROLL
+============================================================ */
+
+.aurora-no-bounce {
+  overscroll-behavior: none;
+}
+
+
+/* ============================================================
+   CODE EDITOR SURFACES
+============================================================ */
+
+.aurora-code {
+  font-family:
+    "SFMono-Regular",
+    "Cascadia Code",
+    "Roboto Mono",
+    Consolas,
+    "Liberation Mono",
+    monospace;
+
+  font-variant-ligatures:
+    common-ligatures;
+
+  tab-size: 2;
+}
+
+
+/* ============================================================
+   NOISE / FILM GRAIN
+============================================================ */
+
+.aurora-noise {
+  position: relative;
+}
+
+.aurora-noise::after {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+
+  pointer-events: none;
+
+  opacity: 0.025;
+
+  background-image:
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.45'/%3E%3C/svg%3E");
+
+  mix-blend-mode:
+    screen;
+}
+
+
+/* ============================================================
+   RESPONSIVE TYPE
+============================================================ */
+
+@media (max-width: 640px) {
+  html {
+    font-size: 15px;
+  }
+
+  .aurora-glass {
+    backdrop-filter:
+      blur(18px);
+
+    -webkit-backdrop-filter:
+      blur(18px);
+  }
+}
+
+
+/* ============================================================
+   REDUCED MOTION
+============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 1ms !important;
+  }
+}
+
+
+/* ============================================================
+   SAFE AREA — MOBILE
+============================================================ */
+
+@supports (
+  padding-bottom: env(safe-area-inset-bottom)
+) {
+  .aurora-safe-bottom {
+    padding-bottom:
+      env(safe-area-inset-bottom);
+  }
+
+  .aurora-safe-top {
+    padding-top:
+      env(safe-area-inset-top);
+  }
     }
-
-    onSubmit(value);
-
-    setInput("");
-    setAttachments([]);
-    setComposerExpanded(false);
-  };
-
-  const handleKeyDown = (event) => {
-    if (
-      event.key === "Enter" &&
-      !event.shiftKey
-    ) {
-      event.preventDefault();
-      submit();
-    }
-  };
-
-  const useSuggestion = (prompt) => {
-    setInput(prompt);
-
-    requestAnimationFrame(() => {
-      textareaRef.current?.focus();
-    });
-  };
-
-  const enhancePrompt = () => {
-    if (!input.trim() || enhancing) {
-      return;
-    }
-
-    setEnhancing(true);
-
-    window.setTimeout(() => {
-      setInput(
-        `${input.trim()}. Make the interface exceptionally polished, responsive, spacious, and production-ready with strong typography, thoughtful interactions, and a refined visual hierarchy.`
-      );
-
-      setEnhancing(false);
-    }, 550);
-  };
-
-  const addAttachment = () => {
-    /*
-     * This is the future attachment boundary.
-     *
-     * A real implementation can replace this with:
-     *
-     * <input type="file" />
-     *
-     * followed by an upload pipeline.
-     */
-
-    setAttachments((current) => [
-      ...current,
-      {
-        id: crypto.randomUUID(),
-        name: "reference-image.png",
-        type: "image",
-      },
-    ]);
-  };
-
-  const hasConversation = messages.length > 0;
-
-  return (
-    <div className="
-      h-full
-      w-full
-      flex
-      flex-col
-      relative
-      overflow-hidden
-      bg-black
-    ">
-
-      {/* --------------------------------------------------
-          AMBIENT LIGHT
-      -------------------------------------------------- */}
-
-      <div className="
-        pointer-events-none
-        absolute
-        inset-0
-        bg-[radial-gradient(circle_at_50%_20%,rgba(255,18,50,.045),transparent_34%)]
-      " />
-
-      {/* --------------------------------------------------
-          TOP CONTEXT
-      -------------------------------------------------- */}
-
-      <div className="
-        relative
-        z-10
-        flex
-        justify-center
-        pt-[12vh]
-        md:pt-[15vh]
-        px-5
-      ">
-
-        {!hasConversation && (
-          <div className="
-            text-center
-            animate-aurora-in
-          ">
-
-            <div className="
-              inline-flex
-              items-center
-              gap-2
-              px-2.5
-              py-1.5
-              rounded-full
-              border
-              border-white/[0.07]
-              bg-white/[0.025]
-              text-[9px]
-              uppercase
-              tracking-[.18em]
-              text-zinc-600
-            ">
-
-              <span className="
-                w-1.5
-                h-1.5
-                rounded-full
-                bg-[#ff1232]
-                shadow-[0_0_9px_rgba(255,18,50,.6)]
-              />
-
-              AI WEBSITE BUILDER
-
-            </div>
-
-            <h1 className="
-              mt-7
-              text-[clamp(42px,6vw,72px)]
-              leading-[.95]
-              tracking-[-.065em]
-              font-medium
-            ">
-              What do you want
-              <br />
-              <span className="text-zinc-600">
-                to build?
-              </span>
-            </h1>
-
-            <p className="
-              mt-5
-              max-w-lg
-              mx-auto
-              text-sm
-              leading-6
-              text-zinc-600
-            ">
-              Describe a website in plain language.
-              Aurora designs the interface, writes the
-              code, and gives you a live preview to iterate on.
-            </p>
-
-          </div>
-        )}
-
-      </div>
-
-      {/* --------------------------------------------------
-          CONVERSATION
-      -------------------------------------------------- */}
-
-      <div className="
-        relative
-        z-10
-        flex-1
-        min-h-0
-        overflow-y-auto
-        px-5
-        md:px-8
-        pb-8
-      ">
-
-        <div className="
-          max-w-[760px]
-          mx-auto
-          pt-10
-        ">
-
-          {messages.map((message, index) => (
-            <ConversationMessage
-              key={message.id || index}
-              message={message}
-              onOpenPreview={onOpenPreview}
-            />
-          ))}
-
-          {streaming && (
-            <GenerationProgress />
-          )}
-
-          <div ref={bottomRef} />
-
-        </div>
-
-      </div>
-
-      {/* --------------------------------------------------
-          SUGGESTIONS
-      -------------------------------------------------- */}
-
-      {!hasConversation && (
-        <div className="
-          relative
-          z-10
-          w-full
-          max-w-[820px]
-          mx-auto
-          px-5
-          pb-5
-        ">
-
-          <div className="
-            flex
-            gap-2
-            overflow-x-auto
-            pb-1
-            scrollbar-hide
-          ">
-
-            {suggestions.map((suggestion) => (
-              <button
-                key={suggestion.title}
-                onClick={() =>
-                  useSuggestion(
-                    suggestion.prompt
-                  )
-                }
-                className="
-                  shrink-0
-                  px-3
-                  py-2
-                  rounded-lg
-                  border
-                  border-white/[0.07]
-                  bg-white/[0.02]
-                  text-[10px]
-                  text-zinc-600
-                  hover:text-zinc-200
-                  hover:bg-white/[0.045]
-                  hover:border-white/[0.12]
-                  transition-all
-                "
-              >
-                {suggestion.title}
-              </button>
-            ))}
-
-          </div>
-
-        </div>
-      )}
-
-      {/* --------------------------------------------------
-          COMPOSER
-      -------------------------------------------------- */}
-
-      <div className="
-        relative
-        z-20
-        w-full
-        max-w-[820px]
-        mx-auto
-        px-5
-        pb-5
-      ">
-
-        <div
-          className={`
-            rounded-2xl
-            border
-            bg-[#09090b]/95
