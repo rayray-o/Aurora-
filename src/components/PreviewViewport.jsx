@@ -1,572 +1,503 @@
-import React, {
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-
+import React, { useMemo, useState } from "react";
 import {
-  ArrowLeft,
   Code2,
-  ExternalLink,
-  Maximize2,
-  Minus,
-  Monitor,
-  RotateCcw,
-  Smartphone,
-  Tablet,
   Copy,
   Check,
+  RefreshCw,
+  ExternalLink,
+  Monitor,
+  Tablet,
+  Smartphone,
+  Maximize2,
+  Minimize2,
+  ChevronLeft,
+  ChevronRight,
+  Globe,
+  Lock,
+  RotateCw,
 } from "lucide-react";
 
-export default function PreviewViewport({
-  template,
-  mode,
-  setMode,
-  onBack,
-}) {
-  const [device, setDevice] =
-    useState("desktop");
+const GREEN = "#b7ff2a";
 
-  const [zoom, setZoom] =
-    useState(100);
+function DeviceIcon({ device }) {
+  if (device === "mobile") {
+    return <Smartphone size={13} />;
+  }
 
-  const [copied, setCopied] =
-    useState(false);
+  if (device === "tablet") {
+    return <Tablet size={13} />;
+  }
 
-  const previewRef = useRef(null);
+  return <Monitor size={13} />;
+}
 
-  const data = useMemo(() => {
-    return template;
-  }, [template]);
-
-  const copyCode = async () => {
-    try {
-      await navigator.clipboard.writeText(
-        template.code
-      );
-
-      setCopied(true);
-
-      setTimeout(
-        () => setCopied(false),
-        1400
-      );
-    } catch {
-      // Clipboard unavailable.
-    }
-  };
-
-  const reload = () => {
-    if (previewRef.current) {
-      previewRef.current.scrollTo({
-        top: 0,
-        behavior: "smooth",
-      });
-    }
-  };
-
+function DeviceButton({ active, device, label, onClick }) {
   return (
-    <section className="
-      h-full
-      w-full
-      bg-[#020203]
-      flex
-      flex-col
-      technical-grid
-    ">
-      <div className="
-        h-12
-        shrink-0
-        border-b
-        border-white/[.06]
-        bg-[#060607]/95
-        backdrop-blur-xl
-        flex
-        items-center
-        justify-between
-        px-3
-      ">
-        <div className="flex items-center gap-1">
-          <button
-            onClick={onBack}
-            className="
-              w-8
-              h-8
-              rounded-lg
-              grid
-              place-items-center
-              text-zinc-600
-              hover:text-white
-              hover:bg-white/[.04]
-            "
-          >
-            <ArrowLeft size={14} />
-          </button>
-
-          <div className="h-4 w-px bg-white/[.06] mx-2" />
-
-          <button
-            onClick={() => setMode("preview")}
-            className={`
-              h-7
-              px-3
-              rounded-lg
-              text-[10px]
-              flex
-              items-center
-              gap-1.5
-              ${
-                mode === "preview"
-                  ? "bg-white/[.07] text-white"
-                  : "text-zinc-700 hover:text-zinc-300"
-              }
-            `}
-          >
-            <Monitor size={11} />
-            Preview
-          </button>
-
-          <button
-            onClick={() => setMode("code")}
-            className={`
-              h-7
-              px-3
-              rounded-lg
-              text-[10px]
-              flex
-              items-center
-              gap-1.5
-              ${
-                mode === "code"
-                  ? "bg-white/[.07] text-white"
-                  : "text-zinc-700 hover:text-zinc-300"
-              }
-            `}
-          >
-            <Code2 size={11} />
-            Code
-          </button>
-        </div>
-
-        <div className="flex items-center gap-1">
-          {[
-            [Monitor, "desktop"],
-            [Tablet, "tablet"],
-            [Smartphone, "mobile"],
-          ].map(([Icon, value]) => (
-            <button
-              key={value}
-              onClick={() =>
-                setDevice(value)
-              }
-              className={`
-                w-8
-                h-8
-                rounded-lg
-                grid
-                place-items-center
-                ${
-                  device === value
-                    ? "bg-white/[.07] text-white"
-                    : "text-zinc-700 hover:text-zinc-300"
-                }
-              `}
-            >
-              <Icon size={13} />
-            </button>
-          ))}
-
-          <div className="h-4 w-px bg-white/[.06] mx-1" />
-
-          <button
-            onClick={() =>
-              setZoom((value) =>
-                Math.max(60, value - 10)
-              )
-            }
-            className="w-8 h-8 grid place-items-center text-zinc-700 hover:text-white"
-          >
-            <Minus size={12} />
-          </button>
-
-          <span className="w-9 text-center text-[9px] text-zinc-600">
-            {zoom}%
-          </span>
-
-          <button
-            onClick={() =>
-              setZoom((value) =>
-                Math.min(120, value + 10)
-              )
-            }
-            className="w-8 h-8 grid place-items-center text-zinc-700 hover:text-white"
-          >
-            +
-          </button>
-
-          <button
-            onClick={reload}
-            className="w-8 h-8 grid place-items-center text-zinc-700 hover:text-white"
-          >
-            <RotateCcw size={12} />
-          </button>
-
-          <button
-            className="hidden sm:grid w-8 h-8 place-items-center text-zinc-700 hover:text-white"
-          >
-            <Maximize2 size={12} />
-          </button>
-        </div>
-      </div>
-
-      {mode === "code" ? (
-        <CodeWorkspace
-          template={template}
-          copied={copied}
-          onCopy={copyCode}
-        />
-      ) : (
-        <div
-          ref={previewRef}
-          className="
-            flex-1
-            overflow-auto
-            p-4
-            md:p-8
-            flex
-            justify-center
-            items-start
-          "
-        >
-          <div
-            className={`
-              shrink-0
-              transition-[width]
-              duration-500
-              ease-[cubic-bezier(.22,1,.36,1)]
-              ${
-                device === "mobile"
-                  ? "w-[390px]"
-                  : device === "tablet"
-                  ? "w-[820px]"
-                  : "w-full max-w-[1280px]"
-              }
-            `}
-          >
-            <div
-              className="
-                origin-top
-                rounded-2xl
-                overflow-hidden
-                border
-                border-white/[.1]
-                bg-[#080809]
-                shadow-[0_40px_120px_rgba(0,0,0,.6)]
-              "
-              style={{
-                zoom: zoom / 100,
-              }}
-            >
-              <BrowserChrome
-                title={data.name}
-              />
-
-              <GeneratedSite
-                template={template}
-              />
-            </div>
-          </div>
-        </div>
-      )}
-    </section>
+    <button
+      type="button"
+      onClick={onClick}
+      title={label}
+      className={[
+        "h-7 px-2.5 rounded-md flex items-center gap-1.5",
+        "text-[10px] transition-all duration-200",
+        "border",
+        active
+          ? "border-white/[.12] bg-white/[.08] text-white"
+          : "border-transparent text-zinc-600 hover:text-zinc-300 hover:bg-white/[.04]",
+      ].join(" ")}
+    >
+      <DeviceIcon device={device} />
+      <span className="hidden sm:inline">{label}</span>
+    </button>
   );
 }
 
-function BrowserChrome({ title }) {
+function BrowserHeader({
+  device,
+  setDevice,
+  zoom,
+  setZoom,
+  onReload,
+  onOpen,
+  fullscreen,
+  setFullscreen,
+}) {
   return (
-    <div className="
-      h-9
-      border-b
-      border-white/[.06]
-      bg-[#0b0b0d]
-      flex
-      items-center
-      gap-1.5
-      px-3
-    ">
-      <span className="w-2 h-2 rounded-full bg-[#242428]" />
-      <span className="w-2 h-2 rounded-full bg-[#242428]" />
-      <span className="w-2 h-2 rounded-full bg-[#242428]" />
+    <div className="h-11 shrink-0 border-b border-[#1e1e21] bg-[#09090b] flex items-center px-2 sm:px-3 gap-2">
+      <div className="flex items-center gap-1">
+        <button
+          type="button"
+          title="Back"
+          className="h-7 w-7 rounded-md flex items-center justify-center text-zinc-700 hover:text-zinc-300 hover:bg-white/[.04] transition-colors"
+        >
+          <ChevronLeft size={14} />
+        </button>
 
-      <div className="
-        flex-1
-        max-w-[520px]
-        mx-auto
-        h-6
-        rounded-md
-        bg-[#101012]
-        flex
-        items-center
-        justify-center
-        text-[8px]
-        text-zinc-700
-      ">
-        localhost / {title.toLowerCase().replaceAll(" ", "-")}
+        <button
+          type="button"
+          title="Forward"
+          className="h-7 w-7 rounded-md flex items-center justify-center text-zinc-700 hover:text-zinc-300 hover:bg-white/[.04] transition-colors"
+        >
+          <ChevronRight size={14} />
+        </button>
+
+        <button
+          type="button"
+          title="Reload preview"
+          onClick={onReload}
+          className="h-7 w-7 rounded-md flex items-center justify-center text-zinc-600 hover:text-white hover:bg-white/[.04] transition-colors"
+        >
+          <RotateCw size={12} />
+        </button>
       </div>
 
-      <ExternalLink
-        size={11}
-        className="text-zinc-700"
-      />
+      <div className="flex-1 min-w-0 h-7 rounded-md border border-white/[.06] bg-[#050506] flex items-center px-2.5 gap-2">
+        <Lock size={10} className="text-zinc-700 shrink-0" />
+
+        <span className="text-[10px] font-mono text-zinc-600 truncate">
+          aurora-preview.local
+        </span>
+
+        <span className="hidden md:block ml-auto text-[9px] text-zinc-800">
+          LIVE
+        </span>
+      </div>
+
+      <div className="hidden md:flex items-center gap-0.5">
+        <DeviceButton
+          active={device === "desktop"}
+          device="desktop"
+          label="Desktop"
+          onClick={() => setDevice("desktop")}
+        />
+
+        <DeviceButton
+          active={device === "tablet"}
+          device="tablet"
+          label="Tablet"
+          onClick={() => setDevice("tablet")}
+        />
+
+        <DeviceButton
+          active={device === "mobile"}
+          device="mobile"
+          label="Mobile"
+          onClick={() => setDevice("mobile")}
+        />
+      </div>
+
+      <div className="hidden lg:flex items-center h-7 rounded-md border border-white/[.06] bg-white/[.015]">
+        <button
+          type="button"
+          onClick={() => setZoom(Math.max(50, zoom - 10))}
+          className="px-2 text-[9px] text-zinc-600 hover:text-white"
+        >
+          −
+        </button>
+
+        <span className="text-[9px] text-zinc-500 min-w-[34px] text-center">
+          {zoom}%
+        </span>
+
+        <button
+          type="button"
+          onClick={() => setZoom(Math.min(150, zoom + 10))}
+          className="px-2 text-[9px] text-zinc-600 hover:text-white"
+        >
+          +
+        </button>
+      </div>
+
+      <button
+        type="button"
+        title={fullscreen ? "Exit fullscreen" : "Fullscreen"}
+        onClick={() => setFullscreen((value) => !value)}
+        className="h-7 w-7 rounded-md flex items-center justify-center text-zinc-600 hover:text-white hover:bg-white/[.04] transition-colors"
+      >
+        {fullscreen ? (
+          <Minimize2 size={12} />
+        ) : (
+          <Maximize2 size={12} />
+        )}
+      </button>
+
+      <button
+        type="button"
+        title="Open preview"
+        onClick={onOpen}
+        className="h-7 w-7 rounded-md flex items-center justify-center text-zinc-600 hover:text-white hover:bg-white/[.04] transition-colors"
+      >
+        <ExternalLink size={12} />
+      </button>
     </div>
   );
 }
 
-function GeneratedSite({ template }) {
-  const isCrypto =
-    template.preview === "crypto";
-
-  const isSecurity =
-    template.preview === "security";
-
-  const title = template.name;
-
+function EmptyPreview() {
   return (
-    <div className="
-      min-h-[900px]
-      bg-[#080809]
-      text-white
-      p-6
-      md:p-10
-    ">
-      <header className="
-        h-12
-        flex
-        items-center
-        justify-between
-        border-b
-        border-white/[.06]
-      ">
-        <div className="font-semibold text-sm">
-          {title}
+    <div className="min-h-[700px] flex items-center justify-center bg-[#050506]">
+      <div className="text-center max-w-sm px-6">
+        <div
+          className="mx-auto mb-5 h-12 w-12 rounded-xl flex items-center justify-center border"
+          style={{
+            borderColor: `${GREEN}22`,
+            background: `${GREEN}08`,
+          }}
+        >
+          <Globe
+            size={19}
+            style={{ color: GREEN }}
+          />
         </div>
 
-        <nav className="
-          hidden
-          md:flex
-          gap-6
-          text-[9px]
-          text-zinc-600
-        ">
+        <h2 className="text-sm font-medium text-white">
+          Your website preview
+        </h2>
+
+        <p className="mt-2 text-xs leading-5 text-zinc-600">
+          Describe what you want to build in the chat.
+          AURORA will generate the interface here.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function DashboardPreview({ template, isSecurity, isCrypto }) {
+  const title = isSecurity
+    ? "Security Operations"
+    : isCrypto
+    ? "Asset Intelligence"
+    : template?.name || "AURORA Workspace";
+
+  const description = isSecurity
+    ? "Real-time infrastructure and threat visibility."
+    : isCrypto
+    ? "Portfolio intelligence and market performance."
+    : "A modern workspace generated by AURORA.";
+
+  const metricText = isSecurity
+    ? "99.98% systems operational"
+    : isCrypto
+    ? "+12.84% this month"
+    : "All systems operational";
+
+  const cards = isSecurity
+    ? [
+        ["Threat level", "Low"],
+        ["Protected assets", "12,481"],
+        ["Events today", "284"],
+        ["Uptime", "99.98%"],
+      ]
+    : isCrypto
+    ? [
+        ["Portfolio", "$184,920"],
+        ["24h change", "+4.82%"],
+        ["Assets", "28"],
+        ["Performance", "+12.84%"],
+      ]
+    : [
+        ["Projects", "24"],
+        ["Activity", "128"],
+        ["Members", "12"],
+        ["Status", "Active"],
+      ];
+
+  return (
+    <div className="min-h-[760px] bg-[#050506] text-white">
+      <header className="sticky top-0 z-20 h-14 border-b border-white/[.06] bg-[#080809]/95 backdrop-blur-xl px-5 md:px-8 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div
+            className="h-7 w-7 rounded-lg flex items-center justify-center"
+            style={{
+              background: `${GREEN}12`,
+              border: `1px solid ${GREEN}24`,
+            }}
+          >
+            <div
+              className="h-2 w-2 rounded-full"
+              style={{ background: GREEN }}
+            />
+          </div>
+
+          <span className="text-[11px] font-medium tracking-wide">
+            {title}
+          </span>
+        </div>
+
+        <div className="hidden sm:flex items-center gap-4 text-[9px] text-zinc-600">
           <span>Overview</span>
           <span>Analytics</span>
           <span>Activity</span>
-          <span>Settings</span>
-        </nav>
-
-        <div className="
-          w-7
-          h-7
-          rounded-full
-          bg-[#b7ff2a]/[.08]
-          border
-          border-[#b7ff2a]/[.13]
-        " />
+        </div>
       </header>
 
-      <main className="pt-12">
-        <div className="flex items-end justify-between gap-8">
-          <div>
-            <div className="text-[9px] uppercase tracking-[.2em] text-zinc-700">
-              {isSecurity
-                ? "Threat operations"
-                : isCrypto
-                ? "Markets / overview"
-                : "Growth / overview"}
+      <main className="p-5 md:p-8">
+        <div className="max-w-[1100px] mx-auto">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-5">
+            <div>
+              <div
+                className="text-[9px] uppercase tracking-[.2em] mb-3"
+                style={{ color: GREEN }}
+              >
+                {isSecurity ? "Security center" : "Workspace"}
+              </div>
+
+              <h1 className="text-2xl md:text-4xl font-semibold tracking-[-.04em]">
+                {title}
+              </h1>
+
+              <p className="mt-2 text-xs text-zinc-600">
+                {description}
+              </p>
             </div>
 
-            <h1 className="
-              mt-4
-              text-4xl
-              md:text-6xl
-              font-medium
-              tracking-[-.055em]
-            ">
-              {isSecurity
-                ? "03 critical signals"
-                : isCrypto
-                ? "$8,421,904"
-                : "$284,921"}
-            </h1>
+            <div className="text-left md:text-right">
+              <div className="text-[9px] text-zinc-700 uppercase tracking-wider">
+                Current status
+              </div>
 
-            <div className="
-              mt-3
-              flex
-              items-center
-              gap-2
-              text-[10px]
-              text-zinc-600
-            ">
-              <span className="
-                w-1.5
-                h-1.5
-                rounded-full
-                bg-[#b7ff2a]
-              />
-
-              {isSecurity
-                ? "99.98% systems operational"
-                : isCrypto
-                ? "+12.84% this month"
-                : "+18.2% vs last month"}
+              <div
+                className="mt-1 text-xs font-mono"
+                style={{ color: GREEN }}
+              >
+                {metricText}
+              </div>
             </div>
           </div>
 
-          <button className="
-            hidden
-            sm:flex
-            h-9
-            px-4
-            rounded-lg
-            bg-[#b7ff2a]
-            text-black
-            text-[9px]
-            font-semibold
-          ">
-            {isSecurity
-              ? "Investigate"
-              : "View details"}
-          </button>
-        </div>
+          <div className="mt-8 grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {cards.map(([label, value]) => (
+              <div
+                key={label}
+                className="rounded-xl border border-white/[.07] bg-white/[.015] p-4"
+              >
+                <div className="text-[9px] uppercase tracking-wider text-zinc-700">
+                  {label}
+                </div>
 
-        <div className="
-          grid
-          grid-cols-1
-          md:grid-cols-3
-          gap-3
-          mt-12
-        ">
-          {(isSecurity
-            ? [
-                ["Endpoints", "14,208", "98.4% healthy"],
-                ["Incidents", "27", "6 investigating"],
-                ["Risk score", "18.4", "Low exposure"],
-              ]
-            : isCrypto
-            ? [
-                ["BTC", "$118,420", "+4.82%"],
-                ["ETH", "$4,281", "+2.31%"],
-                ["USDC", "$2.41M", "Stable"],
-              ]
-            : [
-                ["Customers", "12,482", "+8.1%"],
-                ["Activation", "64.8%", "+3.4%"],
-                ["Churn", "1.82%", "-0.24%"],
-              ]
-          ).map(([label, value, sub]) => (
-            <div
-              key={label}
-              className="
-                rounded-xl
-                border
-                border-white/[.07]
-                bg-white/[.018]
-                p-5
-              "
-            >
-              <div className="text-[9px] text-zinc-700">
-                {label}
+                <div className="mt-3 text-lg font-medium tracking-tight">
+                  {value}
+                </div>
+
+                <div className="mt-2 h-1 rounded-full bg-white/[.04] overflow-hidden">
+                  <div
+                    className="h-full rounded-full"
+                    style={{
+                      width:
+                        label === "Threat level"
+                          ? "18%"
+                          : label === "Status"
+                          ? "92%"
+                          : "76%",
+                      background: GREEN,
+                      opacity: 0.65,
+                    }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-4 rounded-xl border border-white/[.07] bg-white/[.015] overflow-hidden">
+            <div className="px-5 py-4 border-b border-white/[.06] flex items-center justify-between">
+              <div>
+                <div className="text-[9px] uppercase tracking-[.18em] text-zinc-700">
+                  {isSecurity
+                    ? "Threat activity"
+                    : "Performance"}
+                </div>
+
+                <div className="mt-1 text-[10px] text-zinc-600">
+                  {metricText}
+                </div>
               </div>
 
-              <div className="
-                mt-4
-                text-2xl
-                font-medium
-                tracking-tight
-              ">
-                {value}
-              </div>
-
-              <div className="mt-2 text-[9px] text-zinc-600">
-                {sub}
+              <div
+                className="h-6 px-2.5 rounded-md border flex items-center text-[9px]"
+                style={{
+                  color: GREEN,
+                  borderColor: `${GREEN}22`,
+                  background: `${GREEN}06`,
+                }}
+              >
+                Live
               </div>
             </div>
-          ))}
-        </div>
 
-        <div className="
-          mt-4
-          rounded-xl
-          border
-          border-white/[.07]
-          bg-white/[.015]
-          overflow-hidden
-        ">
-          <div className="
-            px-5
-            py-4
-            border-b
-            border-white/[.06]
-            text-[9px]
-            uppercase
-            tracking-[.18em]
-            text-zinc-700
-          ">
-            {isSecurity
-              ? "Threat activity"
-              : "Performance"}
+            <div className="h-[310px] relative p-5 overflow-hidden">
+              <div className="absolute inset-x-5 bottom-8 h-px bg-white/[.05]" />
+
+              <div className="absolute inset-x-5 top-8 bottom-8 flex flex-col justify-between opacity-40">
+                <div className="h-px bg-white/[.035]" />
+                <div className="h-px bg-white/[.035]" />
+                <div className="h-px bg-white/[.035]" />
+                <div className="h-px bg-white/[.035]" />
+              </div>
+
+              <svg
+                viewBox="0 0 1000 220"
+                preserveAspectRatio="none"
+                className="absolute inset-x-5 bottom-8 w-[calc(100%-40px)] h-[210px]"
+              >
+                <defs>
+                  <linearGradient
+                    id="auroraChartFill"
+                    x1="0"
+                    x2="0"
+                    y1="0"
+                    y2="1"
+                  >
+                    <stop
+                      offset="0%"
+                      stopColor={GREEN}
+                      stopOpacity=".13"
+                    />
+                    <stop
+                      offset="100%"
+                      stopColor={GREEN}
+                      stopOpacity="0"
+                    />
+                  </linearGradient>
+                </defs>
+
+                <path
+                  d="M0 180 C90 160 120 170 190 140 S300 155 360 120 S470 130 530 90 S630 110 700 68 S800 92 860 45 S930 55 1000 20 L1000 220 L0 220 Z"
+                  fill="url(#auroraChartFill)"
+                />
+
+                <path
+                  d="M0 180 C90 160 120 170 190 140 S300 155 360 120 S470 130 530 90 S630 110 700 68 S800 92 860 45 S930 55 1000 20"
+                  fill="none"
+                  stroke={GREEN}
+                  strokeOpacity=".75"
+                  strokeWidth="2"
+                  vectorEffect="non-scaling-stroke"
+                />
+
+                <circle
+                  cx="1000"
+                  cy="20"
+                  r="5"
+                  fill={GREEN}
+                />
+
+                <circle
+                  cx="1000"
+                  cy="20"
+                  r="10"
+                  fill={GREEN}
+                  opacity=".1"
+                />
+              </svg>
+            </div>
           </div>
 
-          <div className="h-[310px] relative p-5">
-            <div className="
-              absolute
-              inset-x-5
-              bottom-8
-              h-px
-              bg-white/[.05]
-            />
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="h-40 rounded-xl border border-white/[.07] bg-white/[.015] p-5">
+              <div className="text-[9px] uppercase tracking-wider text-zinc-700">
+                Recent activity
+              </div>
 
-            <div className="
-              absolute
-              inset-x-5
-              bottom-8
-              h-[210px]
-              bg-[linear-gradient(to_top,rgba(183,255,42,.025),transparent)]
-              [clip-path:polygon(0_82%,8%_70%,17%_76%,27%_51%,38%_61%,49%_38%,59%_49%,70%_25%,81%_36%,91%_15%,100%_5%,100%_100%,0_100%)]
-            " />
+              <div className="mt-5 space-y-3">
+                {[
+                  "System analysis completed",
+                  "Workspace synchronized",
+                  "New deployment detected",
+                ].map((item, index) => (
+                  <div
+                    key={item}
+                    className="flex items-center gap-3 text-[10px] text-zinc-600"
+                  >
+                    <span
+                      className="h-1.5 w-1.5 rounded-full"
+                      style={{
+                        background:
+                          index === 0 ? GREEN : "#3f3f46",
+                      }}
+                    />
+                    {item}
+                  </div>
+                ))}
+              </div>
+            </div>
 
-            <svg
-              viewBox="0 0 1000 220"
-              preserveAspectRatio="none"
-              className="
-                absolute
-                inset-x-5
-                bottom-8
-                w-[calc(100%-40px)]
-                h-[210px]
-              "
-            >
-              <path
-                d="M0 180 C90 160 120 170 190 140 S300 155 360 120 S470 130 530 90 S630 110 700 68 S800 92 860 45 S930 55 1000 20"
-                fill="none"
-                stroke="#b7ff2a"
-                strokeOpacity=".7"
-                strokeWidth="2"
-                vectorEffect="non-scaling-stroke"
-              />
-            </svg>
+            <div className="h-40 rounded-xl border border-white/[.07] bg-white/[.015] p-5">
+              <div className="text-[9px] uppercase tracking-wider text-zinc-700">
+                System status
+              </div>
+
+              <div className="mt-5 space-y-3">
+                {[
+                  ["API", "Operational"],
+                  ["Database", "Operational"],
+                  ["Edge", "Operational"],
+                ].map(([name, status]) => (
+                  <div
+                    key={name}
+                    className="flex items-center justify-between text-[10px]"
+                  >
+                    <span className="text-zinc-600">
+                      {name}
+                    </span>
+
+                    <span
+                      className="flex items-center gap-2"
+                      style={{ color: GREEN }}
+                    >
+                      <span
+                        className="h-1.5 w-1.5 rounded-full"
+                        style={{
+                          background: GREEN,
+                        }}
+                      />
+                      {status}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
-        </div>
-
-        <div className="
-          mt-4
-          grid
-          grid-cols-1
-          md:grid-cols-2
-          gap-4
-        ">
-          <div className="h-40 rounded-xl border border-white/[.07] bg-white/[.015]" />
-          <div className="h-40 rounded-xl border border-white/[.07] bg-white/[.015]" />
         </div>
       </main>
     </div>
@@ -578,36 +509,24 @@ function CodeWorkspace({
   copied,
   onCopy,
 }) {
+  const code = template?.code || `// AURORA generated application
+
+export default function App() {
   return (
-    <div className="
-      flex-1
-      overflow-auto
-      p-4
-      md:p-8
-    ">
-      <div className="
-        max-w-[1100px]
-        mx-auto
-        rounded-2xl
-        border
-        border-white/[.07]
-        bg-[#080809]
-        overflow-hidden
-        shadow-2xl
-      ">
-        <div className="
-          h-11
-          border-b
-          border-white/[.06]
-          px-4
-          flex
-          items-center
-          justify-between
-        ">
+    <main>
+      <h1>Your generated website</h1>
+    </main>
+  );
+}`;
+
+  return (
+    <div className="flex-1 min-h-0 overflow-auto bg-[#050506] p-4 md:p-8">
+      <div className="max-w-[1100px] mx-auto rounded-2xl border border-white/[.07] bg-[#080809] overflow-hidden shadow-2xl">
+        <div className="h-11 border-b border-white/[.06] px-4 flex items-center justify-between sticky top-0 bg-[#080809]/95 backdrop-blur-xl z-10">
           <div className="flex items-center gap-2">
             <Code2
               size={13}
-              className="text-[#b7ff2a]"
+              style={{ color: GREEN }}
             />
 
             <span className="text-[9px] text-zinc-500 font-mono">
@@ -616,20 +535,9 @@ function CodeWorkspace({
           </div>
 
           <button
+            type="button"
             onClick={onCopy}
-            className="
-              h-7
-              px-2.5
-              rounded-lg
-              border
-              border-white/[.06]
-              text-[9px]
-              text-zinc-600
-              hover:text-white
-              flex
-              items-center
-              gap-1.5
-            "
+            className="h-7 px-2.5 rounded-lg border border-white/[.06] text-[9px] text-zinc-600 hover:text-white hover:bg-white/[.03] flex items-center gap-1.5 transition-colors"
           >
             {copied ? (
               <Check size={11} />
@@ -641,19 +549,263 @@ function CodeWorkspace({
           </button>
         </div>
 
-        <pre className="
-          p-5
-          md:p-7
-          text-[11px]
-          leading-6
-          font-mono
-          text-zinc-400
-          overflow-auto
-          whitespace-pre
-        ">
-          <code>{template.code}</code>
+        <pre className="p-5 md:p-7 text-[11px] leading-6 font-mono text-zinc-400 overflow-auto whitespace-pre min-h-[600px]">
+          <code>{code}</code>
         </pre>
       </div>
     </div>
+  );
+}
+
+export default function PreviewViewport({
+  template = null,
+  activeView = "preview",
+  onViewChange,
+  onClose,
+}) {
+  const [device, setDevice] = useState("desktop");
+  const [zoom, setZoom] = useState(100);
+  const [reloadKey, setReloadKey] = useState(0);
+  const [copied, setCopied] = useState(false);
+  const [fullscreen, setFullscreen] = useState(false);
+
+  const templateName = String(
+    template?.name || ""
+  ).toLowerCase();
+
+  const templateCode = String(
+    template?.code || ""
+  ).toLowerCase();
+
+  const isSecurity =
+    templateName.includes("security") ||
+    templateName.includes("cyber") ||
+    templateCode.includes("security");
+
+  const isCrypto =
+    templateName.includes("crypto") ||
+    templateName.includes("finance") ||
+    templateCode.includes("crypto");
+
+  const viewportWidth = useMemo(() => {
+    if (device === "mobile") return 390;
+    if (device === "tablet") return 820;
+    return 1440;
+  }, [device]);
+
+  const handleCopy = async () => {
+    const code =
+      template?.code ||
+      "// AURORA generated application";
+
+    try {
+      await navigator.clipboard.writeText(code);
+
+      setCopied(true);
+
+      window.setTimeout(() => {
+        setCopied(false);
+      }, 1600);
+    } catch (error) {
+      console.error(
+        "Unable to copy generated code:",
+        error
+      );
+    }
+  };
+
+  const handleReload = () => {
+    setReloadKey((value) => value + 1);
+  };
+
+  const handleOpen = () => {
+    const code =
+      template?.code ||
+      "// AURORA generated application";
+
+    const blob = new Blob(
+      [
+        `
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AURORA Preview</title>
+<style>
+body {
+  margin: 0;
+  background: #050506;
+  color: white;
+  font-family: Inter, system-ui, sans-serif;
+}
+</style>
+</head>
+<body>
+<div id="aurora-preview">
+${code.replace(/</g, "&lt;").replace(/>/g, "&gt;")}
+</div>
+</body>
+</html>
+        `,
+      ],
+      { type: "text/html" }
+    );
+
+    const url = URL.createObjectURL(blob);
+    window.open(url, "_blank", "noopener,noreferrer");
+
+    window.setTimeout(() => {
+      URL.revokeObjectURL(url);
+    }, 10000);
+  };
+
+  const content = (
+    <div
+      key={reloadKey}
+      className="flex flex-col min-h-0 h-full bg-[#000000]"
+    >
+      <BrowserHeader
+        device={device}
+        setDevice={setDevice}
+        zoom={zoom}
+        setZoom={setZoom}
+        onReload={handleReload}
+        onOpen={handleOpen}
+        fullscreen={fullscreen}
+        setFullscreen={setFullscreen}
+      />
+
+      <div className="h-10 shrink-0 border-b border-[#1e1e21] bg-[#060607] px-3 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div
+            className="h-5 w-5 rounded flex items-center justify-center"
+            style={{
+              background: `${GREEN}0d`,
+              border: `1px solid ${GREEN}20`,
+            }}
+          >
+            <div
+              className="h-1.5 w-1.5 rounded-full"
+              style={{ background: GREEN }}
+            />
+          </div>
+
+          <span className="text-[9px] text-zinc-600">
+            Preview
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span
+            className="hidden sm:inline text-[8px] uppercase tracking-wider"
+            style={{ color: GREEN }}
+          >
+            Live
+          </span>
+
+          <span className="text-[9px] text-zinc-700 font-mono">
+            {device} · {zoom}%
+          </span>
+        </div>
+      </div>
+
+      <div className="flex-1 min-h-0 overflow-auto bg-[#030304]">
+        {activeView === "code" ? (
+          <CodeWorkspace
+            template={template}
+            copied={copied}
+            onCopy={handleCopy}
+          />
+        ) : (
+          <div className="min-h-full flex justify-center">
+            <div
+              className="min-h-full transition-[width] duration-300 ease-out"
+              style={{
+                width:
+                  device === "desktop"
+                    ? "100%"
+                    : `${viewportWidth}px`,
+                minWidth:
+                  device === "desktop"
+                    ? "100%"
+                    : `${viewportWidth}px`,
+                transform: `scale(${zoom / 100})`,
+                transformOrigin: "top center",
+                marginBottom:
+                  zoom > 100
+                    ? `${(zoom - 100) * 6}px`
+                    : "0px",
+              }}
+            >
+              {template ? (
+                <DashboardPreview
+                  template={template}
+                  isSecurity={isSecurity}
+                  isCrypto={isCrypto}
+                />
+              ) : (
+                <EmptyPreview />
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="h-10 shrink-0 border-t border-[#1e1e21] bg-[#080809] px-3 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="h-1.5 w-1.5 rounded-full bg-[#b7ff2a]" />
+
+          <span className="text-[8px] text-zinc-700 uppercase tracking-[.14em]">
+            Sandbox ready
+          </span>
+        </div>
+
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() =>
+              onViewChange?.("preview")
+            }
+            className={[
+              "h-6 px-2.5 rounded-md text-[9px] transition-colors",
+              activeView === "preview"
+                ? "bg-white/[.06] text-white"
+                : "text-zinc-700 hover:text-zinc-400",
+            ].join(" ")}
+          >
+            Preview
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onViewChange?.("code")}
+            className={[
+              "h-6 px-2.5 rounded-md text-[9px] transition-colors flex items-center gap-1.5",
+              activeView === "code"
+                ? "bg-white/[.06] text-white"
+                : "text-zinc-700 hover:text-zinc-400",
+            ].join(" ")}
+          >
+            <Code2 size={10} />
+            Code
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  if (fullscreen) {
+    return (
+      <div className="fixed inset-0 z-[100] bg-black">
+        {content}
+      </div>
+    );
+  }
+
+  return (
+    <section className="h-full min-h-0 w-full overflow-hidden bg-black">
+      {content}
+    </section>
   );
         }
