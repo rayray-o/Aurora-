@@ -1,517 +1,636 @@
-import { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
-  ArrowLeft,
-  ArrowRight,
   Code2,
   ExternalLink,
-  Globe2,
   Maximize2,
   Minus,
-  MoreHorizontal,
-  PanelRight,
-  Play,
-  RefreshCw,
-  RotateCcw,
-  Search,
-  ShieldCheck,
+  Monitor,
+  MousePointer2,
+  Plus,
+  RotateCw,
   Smartphone,
-  Square,
   Tablet,
-  TerminalSquare,
-  X,
 } from "lucide-react";
 
-function PreviewViewport({
-  viewport,
-  setViewport,
-  device,
-  activeTemplate,
-  sourceCode,
-  onRefresh,
+const palettes = {
+  crypto: {
+    title: "Nova Capital",
+    tag: "MARKETS / OVERVIEW",
+    metric: "$8,421,904.28",
+    change: "+12.84% this month",
+    cards: [
+      ["BTC", "$118,420", "+4.82%"],
+      ["ETH", "$4,281", "+2.31%"],
+      ["USDC", "$2.41M", "Stable"],
+    ],
+  },
+
+  security: {
+    title: "Sentinel Security",
+    tag: "THREAT OPERATIONS",
+    metric: "03 critical signals",
+    change: "99.98% systems operational",
+    cards: [
+      ["Endpoints", "14,208", "98.4% healthy"],
+      ["Incidents", "27", "6 investigating"],
+      ["Risk score", "18.4", "Low exposure"],
+    ],
+  },
+
+  saas: {
+    title: "Atlas",
+    tag: "GROWTH / OVERVIEW",
+    metric: "$284,921",
+    change: "+18.2% vs last month",
+    cards: [
+      ["Customers", "12,482", "+8.1%"],
+      ["Activation", "64.8%", "+3.4%"],
+      ["Churn", "1.82%", "-0.24%"],
+    ],
+  },
+};
+
+export default function PreviewViewport({
+  template,
+  mode,
+  setMode,
 }) {
-  const [url, setUrl] = useState("aurora.local");
-  const [previewKey, setPreviewKey] = useState(0);
-  const [browserTab, setBrowserTab] = useState("Preview");
+  const [device, setDevice] = useState("desktop");
+  const [zoom, setZoom] = useState(100);
 
-  const codeLines = useMemo(() => sourceCode.split("\n"), [sourceCode]);
-
-  useEffect(() => {
-    setPreviewKey((value) => value + 1);
-  }, [activeTemplate]);
-
-  const refreshPreview = () => {
-    setPreviewKey((value) => value + 1);
-    onRefresh();
-  };
-
-  const frameClass =
-    device === "mobile"
-      ? "h-[640px] w-[360px]"
-      : device === "tablet"
-      ? "h-[760px] w-[680px]"
-      : "h-full w-full";
-
-  return (
-    <div className="flex h-full min-h-0 flex-col">
-      <div className="flex h-[52px] shrink-0 items-center border-b border-[#1e1e21] bg-[#09090b] px-3">
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            onClick={() => setBrowserTab("Preview")}
-            className={`aurora-transition flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[10px] font-medium ${
-              browserTab === "Preview"
-                ? "bg-[#121214] text-zinc-200"
-                : "text-zinc-600 hover:text-zinc-400"
-            }`}
-          >
-            <Globe2 size={11} />
-            Preview
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              setBrowserTab("Source");
-              setViewport("code");
-            }}
-            className={`aurora-transition flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[10px] font-medium ${
-              browserTab === "Source"
-                ? "bg-[#121214] text-zinc-200"
-                : "text-zinc-600 hover:text-zinc-400"
-            }`}
-          >
-            <Code2 size={11} />
-            Source
-          </button>
-        </div>
-
-        <div className="mx-3 h-4 w-px bg-[#1e1e21]" />
-
-        <div className="flex min-w-0 flex-1 items-center gap-2">
-          <button
-            type="button"
-            className="hidden p-1 text-zinc-700 hover:text-zinc-400 sm:block"
-          >
-            <ArrowLeft size={13} />
-          </button>
-
-          <button
-            type="button"
-            className="hidden p-1 text-zinc-700 hover:text-zinc-400 sm:block"
-          >
-            <ArrowRight size={13} />
-          </button>
-
-          <div className="flex min-w-0 flex-1 items-center gap-2 rounded-md border border-[#1e1e21] bg-[#0d0d0f] px-2.5 py-1.5">
-            <ShieldCheck size={11} className="shrink-0 text-zinc-700" />
-
-            <input
-              value={url}
-              onChange={(event) => setUrl(event.target.value)}
-              className="min-w-0 flex-1 bg-transparent text-[10px] text-zinc-500 outline-none"
-              aria-label="Preview URL"
-            />
-
-            <Search size={11} className="shrink-0 text-zinc-700" />
-          </div>
-        </div>
-
-        <div className="ml-2 flex items-center gap-0.5">
-          <button
-            type="button"
-            onClick={refreshPreview}
-            title="Refresh preview"
-            className="aurora-transition rounded-md p-1.5 text-zinc-600 hover:bg-[#121214] hover:text-zinc-300"
-          >
-            <RefreshCw size={13} />
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setViewport("code")}
-            title="View source"
-            className={`aurora-transition rounded-md p-1.5 ${
-              viewport === "code"
-                ? "bg-[#121214] text-zinc-200"
-                : "text-zinc-600 hover:bg-[#121214] hover:text-zinc-300"
-            }`}
-          >
-            <TerminalSquare size={13} />
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {}}
-            title="Fullscreen"
-            className="aurora-transition rounded-md p-1.5 text-zinc-600 hover:bg-[#121214] hover:text-zinc-300"
-          >
-            <Maximize2 size={13} />
-          </button>
-        </div>
-      </div>
-
-      <div className="flex h-[42px] shrink-0 items-center border-b border-[#1e1e21] bg-[#0d0d0f] px-3">
-        <div className="flex h-full items-center">
-          <div className="flex h-full items-center gap-2 border-b border-[#ff1232] px-3">
-            <div className="h-1.5 w-1.5 rounded-full bg-[#ff1232]" />
-
-            <span className="text-[10px] text-zinc-400">
-              {activeTemplate.name}
-            </span>
-
-            <button
-              type="button"
-              className="ml-1 text-zinc-700 hover:text-zinc-400"
-            >
-              <X size={10} />
-            </button>
-          </div>
-
-          <button
-            type="button"
-            className="px-3 text-zinc-700 hover:text-zinc-400"
-          >
-            <PlusIcon />
-          </button>
-        </div>
-
-        <div className="ml-auto flex items-center gap-1">
-          <div className="hidden items-center gap-1 rounded border border-[#1e1e21] px-2 py-1 sm:flex">
-            <span className="text-[9px] uppercase tracking-[0.1em] text-zinc-700">
-              {device}
-            </span>
-          </div>
-
-          <button
-            type="button"
-            className="rounded-md p-1.5 text-zinc-700 hover:bg-[#121214] hover:text-zinc-400"
-          >
-            <MoreHorizontal size={13} />
-          </button>
-        </div>
-      </div>
-
-      <div className="aurora-preview-grid min-h-0 flex-1 overflow-auto bg-[#050506]">
-        {viewport === "preview" ? (
-          <div className="flex min-h-full items-start justify-center p-5">
-            <div
-              key={previewKey}
-              className={`aurora-transition relative overflow-hidden rounded-lg border border-[#29292d] bg-white shadow-[0_30px_100px_rgba(0,0,0,0.55)] ${frameClass}`}
-            >
-              <PreviewContent template={activeTemplate} />
-            </div>
-          </div>
-        ) : (
-          <CodePanel
-            lines={codeLines}
-            onBack={() => {
-              setViewport("preview");
-              setBrowserTab("Preview");
-            }}
-          />
-        )}
-      </div>
-    </div>
+  const data = useMemo(
+    () =>
+      palettes[template.preview] ||
+      palettes.saas,
+    [template]
   );
-}
 
-function PreviewContent({ template }) {
-  const [activeNav, setActiveNav] = useState(0);
+  if (mode === "code") {
+    return (
+      <section className="flex-1 min-w-0 bg-[#050506] flex flex-col">
 
-  return (
-    <div className="h-full min-h-full overflow-auto bg-[#08090b] text-white">
-      <div className="sticky top-0 z-10 flex h-14 items-center border-b border-white/[0.07] bg-[#08090b]/95 px-5 backdrop-blur-xl">
-        <div className="flex items-center gap-2.5">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#ff1232]">
-            <SparkMark />
-          </div>
+        <Toolbar
+          device={device}
+          setDevice={setDevice}
+          zoom={zoom}
+          setZoom={setZoom}
+          mode={mode}
+          setMode={setMode}
+        />
 
-          <span className="text-[13px] font-semibold tracking-[-0.02em]">
-            {template.brand}
-          </span>
-        </div>
+        <div className="flex-1 overflow-auto p-6">
 
-        <div className="ml-auto hidden items-center gap-5 md:flex">
-          {template.navigation.map((item, index) => (
-            <button
-              type="button"
-              key={item}
-              onClick={() => setActiveNav(index)}
-              className={`text-[10px] transition-colors ${
-                activeNav === index
-                  ? "text-white"
-                  : "text-zinc-600 hover:text-zinc-300"
-              }`}
-            >
-              {item}
-            </button>
-          ))}
-        </div>
+          <div className="
+            max-w-5xl
+            mx-auto
+            rounded-xl
+            border
+            border-[#1e1e21]
+            bg-[#09090b]
+            overflow-hidden
+            shadow-2xl
+          ">
 
-        <button className="ml-5 rounded-md border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[9px] font-medium">
-          Launch
-        </button>
-      </div>
+            <div className="
+              h-10
+              px-4
+              border-b
+              border-[#1e1e21]
+              flex
+              items-center
+              justify-between
+            ">
 
-      <div className="px-5 py-6 md:px-8 md:py-10">
-        <div className="mb-8 max-w-2xl">
-          <div className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-[#ff1232]/20 bg-[#ff1232]/[0.06] px-2.5 py-1 text-[8px] uppercase tracking-[0.16em] text-[#ff6a7d]">
-            <span className="h-1 w-1 rounded-full bg-[#ff1232]" />
-            {template.eyebrow}
-          </div>
+              <div className="flex items-center gap-2">
+                <Code2
+                  size={12}
+                  className="text-[#ff1232]"
+                />
 
-          <h1 className="text-[27px] font-semibold leading-[1.08] tracking-[-0.045em] md:text-[38px]">
-            {template.headline}
-          </h1>
-
-          <p className="mt-3 max-w-lg text-[11px] leading-5 text-zinc-500">
-            {template.description}
-          </p>
-        </div>
-
-        <div className="grid grid-cols-2 gap-2.5 md:grid-cols-4">
-          {template.metrics.map((metric) => (
-            <div
-              key={metric.label}
-              className="rounded-lg border border-white/[0.07] bg-white/[0.025] p-3"
-            >
-              <div className="mb-2 text-[8px] uppercase tracking-[0.13em] text-zinc-700">
-                {metric.label}
+                <span className="text-[10px] text-zinc-500 font-mono">
+                  src/App.jsx
+                </span>
               </div>
 
-              <div className="text-[18px] font-semibold tracking-[-0.03em]">
-                {metric.value}
-              </div>
-
-              <div className="mt-1 text-[8px] text-zinc-600">
-                {metric.change}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-3 grid gap-3 md:grid-cols-[1.45fr_0.8fr]">
-          <div className="overflow-hidden rounded-lg border border-white/[0.07] bg-white/[0.02]">
-            <div className="flex h-10 items-center justify-between border-b border-white/[0.06] px-3.5">
-              <span className="text-[9px] font-medium text-zinc-400">
-                {template.primaryPanel.title}
+              <span className="text-[9px] text-zinc-700 tracking-widest">
+                GENERATED SOURCE
               </span>
 
-              <span className="text-[8px] text-zinc-700">
-                {template.primaryPanel.period}
-              </span>
             </div>
 
-            <div className="p-4">
-              <Chart data={template.primaryPanel.chart} />
-            </div>
+            <pre className="
+              p-5
+              text-[11px]
+              leading-5
+              font-mono
+              text-zinc-400
+              overflow-auto
+              whitespace-pre-wrap
+            ">
+              <code>
+                {template.code}
+              </code>
+            </pre>
+
           </div>
 
-          <div className="rounded-lg border border-white/[0.07] bg-white/[0.02] p-4">
-            <div className="mb-4 flex items-center justify-between">
-              <span className="text-[9px] font-medium text-zinc-400">
-                {template.secondaryPanel.title}
-              </span>
-
-              <MoreHorizontal size={12} className="text-zinc-700" />
-            </div>
-
-            <div className="space-y-3">
-              {template.secondaryPanel.rows.map((row) => (
-                <div
-                  key={row.label}
-                  className="flex items-center justify-between border-b border-white/[0.04] pb-2.5 last:border-0 last:pb-0"
-                >
-                  <div>
-                    <div className="text-[9px] text-zinc-500">{row.label}</div>
-                    <div className="mt-0.5 text-[11px] font-medium text-zinc-300">
-                      {row.value}
-                    </div>
-                  </div>
-
-                  <span className="text-[8px] text-zinc-600">
-                    {row.status}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
 
-        <div className="mt-3 grid gap-3 md:grid-cols-3">
-          {template.cards.map((card) => (
-            <div
-              key={card.title}
-              className="rounded-lg border border-white/[0.07] bg-white/[0.02] p-4"
-            >
-              <div className="mb-5 flex items-start justify-between">
-                <div className="flex h-7 w-7 items-center justify-center rounded-md bg-white/[0.04]">
-                  <div className="h-2 w-2 rounded-full bg-[#ff1232]" />
-                </div>
-
-                <span className="text-[8px] text-zinc-700">{card.tag}</span>
-              </div>
-
-              <div className="text-[11px] font-medium text-zinc-300">
-                {card.title}
-              </div>
-
-              <p className="mt-1.5 text-[8px] leading-4 text-zinc-600">
-                {card.description}
-              </p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function CodePanel({ lines, onBack }) {
-  return (
-    <div className="h-full min-w-[700px] bg-[#08080a]">
-      <div className="sticky top-0 z-10 flex h-11 items-center border-b border-[#1e1e21] bg-[#09090b]/95 px-4 backdrop-blur-xl">
-        <button
-          type="button"
-          onClick={onBack}
-          className="mr-3 flex items-center gap-1.5 text-[10px] text-zinc-600 hover:text-zinc-300"
-        >
-          <ArrowLeft size={11} />
-          Preview
-        </button>
-
-        <div className="h-4 w-px bg-[#1e1e21]" />
-
-        <div className="ml-3 flex items-center gap-2">
-          <Code2 size={12} className="text-[#ff1232]" />
-          <span className="text-[10px] font-medium text-zinc-400">
-            generated.jsx
-          </span>
-        </div>
-
-        <span className="ml-auto text-[9px] text-zinc-700">
-          {lines.length} lines
-        </span>
-      </div>
-
-      <div className="aurora-scroll aurora-mono aurora-code overflow-auto py-4 text-[11px] leading-[21px] text-zinc-500">
-        {lines.map((line, index) => (
-          <span key={`${index}-${line}`} className="aurora-code-line">
-            <SyntaxLine line={line} />
-          </span>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function SyntaxLine({ line }) {
-  if (line.trim().startsWith("//")) {
-    return <span className="aurora-code-comment">{line}</span>;
+      </section>
+    );
   }
 
-  const tokens = line.split(
-    /(".*?"|'[^']*'|`[^`]*`|\b(?:const|let|return|function|import|from|export|default|className)\b)/g
-  );
-
   return (
-    <>
-      {tokens.map((token, index) => {
-        if (/^["'`]/.test(token)) {
-          return (
-            <span key={index} className="aurora-code-string">
-              {token}
-            </span>
-          );
-        }
+    <section className="
+      flex-1
+      min-w-0
+      bg-[#020203]
+      flex
+      flex-col
+      technical-grid
+    ">
 
-        if (
-          /^(const|let|return|function|import|from|export|default|className)$/.test(
-            token
-          )
-        ) {
-          return (
-            <span key={index} className="aurora-code-keyword">
-              {token}
-            </span>
-          );
-        }
+      <Toolbar
+        device={device}
+        setDevice={setDevice}
+        zoom={zoom}
+        setZoom={setZoom}
+        mode={mode}
+        setMode={setMode}
+      />
 
-        if (/\b(?:aurora|Aurora|red|accent)\b/i.test(token)) {
-          return (
-            <span key={index} className="aurora-code-accent">
-              {token}
-            </span>
-          );
-        }
+      <div className="
+        flex-1
+        overflow-auto
+        p-5
+        md:p-8
+        flex
+        justify-center
+      ">
 
-        return <span key={index}>{token}</span>;
-      })}
-    </>
+        <div
+          className={`
+            transition-all
+            duration-500
+            ease-out
+
+            ${
+              device === "mobile"
+                ? "w-[390px]"
+                : device === "tablet"
+                ? "w-[820px]"
+                : "w-full max-w-[1240px]"
+            }
+          `}
+        >
+
+          <div
+            className="
+              rounded-2xl
+              border
+              border-[#28282d]
+              bg-[#09090b]
+              shadow-[0_30px_100px_rgba(0,0,0,.6)]
+              overflow-hidden
+            "
+            style={{
+              transform: `scale(${zoom / 100})`,
+              transformOrigin: "top center",
+            }}
+          >
+
+            <BrowserChrome data={data} />
+
+            <div className="
+              min-h-[620px]
+              p-7
+              md:p-10
+              bg-[#080809]
+            ">
+
+              {/* PRODUCT HEADER */}
+
+              <div className="
+                flex
+                justify-between
+                items-center
+                border-b
+                border-[#1e1e21]
+                pb-5
+              ">
+
+                <div className="font-semibold text-sm">
+                  {data.title}
+                </div>
+
+                <div className="
+                  text-[9px]
+                  tracking-[.18em]
+                  text-zinc-600
+                ">
+                  {data.tag}
+                </div>
+
+              </div>
+
+              {/* HERO */}
+
+              <div className="pt-12 pb-10">
+
+                <div className="
+                  text-[10px]
+                  uppercase
+                  tracking-[.18em]
+                  text-zinc-600
+                ">
+                  Primary metric
+                </div>
+
+                <div className="
+                  mt-3
+                  text-4xl
+                  md:text-5xl
+                  font-semibold
+                  tracking-[-.045em]
+                ">
+                  {data.metric}
+                </div>
+
+                <div className="mt-3 text-[10px] text-zinc-500">
+
+                  <span className="text-[#ff1232]">
+                    ●
+                  </span>
+
+                  {" "}
+                  {data.change}
+
+                </div>
+
+              </div>
+
+              {/* METRIC CARDS */}
+
+              <div className="grid md:grid-cols-3 gap-3">
+
+                {data.cards.map(
+                  ([label, value, sub]) => (
+                    <MetricCard
+                      key={label}
+                      label={label}
+                      value={value}
+                      sub={sub}
+                    />
+                  )
+                )}
+
+              </div>
+
+              {/* GRAPH */}
+
+              <div className="
+                mt-4
+                h-40
+                rounded-xl
+                border
+                border-[#1e1e21]
+                bg-[#0b0b0d]
+                relative
+                overflow-hidden
+              ">
+
+                <div className="
+                  absolute
+                  top-4
+                  left-4
+                  text-[9px]
+                  uppercase
+                  tracking-widest
+                  text-zinc-700
+                ">
+                  Activity / 30 days
+                </div>
+
+                <svg
+                  viewBox="0 0 1000 200"
+                  preserveAspectRatio="none"
+                  className="
+                    absolute
+                    inset-x-0
+                    bottom-0
+                    w-full
+                    h-[80%]
+                  "
+                >
+                  <defs>
+                    <linearGradient
+                      id="chartFill"
+                      x1="0"
+                      x2="0"
+                      y1="0"
+                      y2="1"
+                    >
+                      <stop
+                        offset="0%"
+                        stopColor="#ff1232"
+                        stopOpacity=".12"
+                      />
+
+                      <stop
+                        offset="100%"
+                        stopColor="#ff1232"
+                        stopOpacity="0"
+                      />
+                    </linearGradient>
+                  </defs>
+
+                  <path
+                    d="
+                      M0 170
+                      C80 155
+                      120 165
+                      180 140
+                      S280 155
+                      340 120
+                      S430 135
+                      500 90
+                      S590 110
+                      660 70
+                      S760 105
+                      830 50
+                      S930 65
+                      1000 25
+                      L1000 200
+                      L0 200
+                      Z
+                    "
+                    fill="url(#chartFill)"
+                  />
+
+                  <path
+                    d="
+                      M0 170
+                      C80 155
+                      120 165
+                      180 140
+                      S280 155
+                      340 120
+                      S430 135
+                      500 90
+                      S590 110
+                      660 70
+                      S760 105
+                      830 50
+                      S930 65
+                      1000 25
+                    "
+                    fill="none"
+                    stroke="#ff1232"
+                    strokeOpacity=".65"
+                    strokeWidth="2"
+                    vectorEffect="non-scaling-stroke"
+                  />
+                </svg>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
   );
 }
 
-function Chart({ data }) {
-  const points = data
-    .map((value, index) => {
-      const x = (index / Math.max(data.length - 1, 1)) * 100;
-      const min = Math.min(...data);
-      const max = Math.max(...data);
-      const range = max - min || 1;
-      const y = 90 - ((value - min) / range) * 70;
-
-      return `${x},${y}`;
-    })
-    .join(" ");
-
+function BrowserChrome({ data }) {
   return (
-    <div className="relative h-[150px] w-full">
-      <div className="absolute inset-0 flex flex-col justify-between">
-        {[0, 1, 2, 3].map((item) => (
-          <div key={item} className="h-px w-full bg-white/[0.035]" />
-        ))}
+    <div className="
+      h-8
+      border-b
+      border-[#1e1e21]
+      bg-[#08080a]
+      flex
+      items-center
+      px-3
+      gap-1.5
+    ">
+
+      <span className="w-2 h-2 rounded-full bg-[#252529]" />
+      <span className="w-2 h-2 rounded-full bg-[#252529]" />
+      <span className="w-2 h-2 rounded-full bg-[#252529]" />
+
+      <div className="
+        mx-auto
+        px-4
+        py-1
+        rounded-md
+        bg-[#101012]
+        text-[8px]
+        text-zinc-700
+      ">
+        aurora.local /{" "}
+        {data.title
+          .toLowerCase()
+          .replaceAll(" ", "-")}
       </div>
 
-      <svg
-        viewBox="0 0 100 100"
-        preserveAspectRatio="none"
-        className="absolute inset-0 h-full w-full overflow-visible"
-      >
-        <polyline
-          points={points}
-          fill="none"
-          stroke="#ff1232"
-          strokeWidth="1.4"
-          vectorEffect="non-scaling-stroke"
-        />
+      <ExternalLink
+        size={10}
+        className="text-zinc-700"
+      />
 
-        <polyline
-          points={`0,92 ${points}`}
-          fill="rgba(255,18,50,0.035)"
-          stroke="none"
-        />
-      </svg>
     </div>
   );
 }
 
-function SparkMark() {
+function MetricCard({
+  label,
+  value,
+  sub,
+}) {
   return (
-    <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-      <path
-        d="M6.5 0.8L7.6 5.4L12.2 6.5L7.6 7.6L6.5 12.2L5.4 7.6L0.8 6.5L5.4 5.4L6.5 0.8Z"
-        fill="white"
-      />
-    </svg>
+    <div className="
+      rounded-xl
+      border
+      border-[#1e1e21]
+      bg-[#0d0d0f]
+      p-5
+      hover:border-[#323237]
+      transition-colors
+    ">
+
+      <div className="text-[10px] text-zinc-600">
+        {label}
+      </div>
+
+      <div className="
+        mt-4
+        text-2xl
+        font-medium
+        tracking-tight
+      ">
+        {value}
+      </div>
+
+      <div className="mt-2 text-[9px] text-zinc-600">
+        {sub}
+      </div>
+
+    </div>
   );
 }
 
-function PlusIcon() {
+function Toolbar({
+  device,
+  setDevice,
+  zoom,
+  setZoom,
+  mode,
+  setMode,
+}) {
   return (
-    <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
-      <path d="M5.5 1V10M1 5.5H10" stroke="currentColor" />
-    </svg>
-  );
-}
+    <div className="
+      h-11
+      shrink-0
+      border-b
+      border-[#1e1e21]
+      bg-[#060607]/95
+      backdrop-blur-xl
+      flex
+      items-center
+      justify-between
+      px-3
+    ">
 
-export default PreviewViewport;
+      <div className="flex items-center gap-1">
+
+        <button
+          onClick={() => setMode("preview")}
+          className={`
+            px-2.5
+            h-7
+            rounded-md
+            text-[10px]
+            flex
+            items-center
+            gap-1.5
+
+            ${
+              mode === "preview"
+                ? "bg-[#151518] text-white"
+                : "text-zinc-600 hover:text-zinc-300"
+            }
+          `}
+        >
+          <MousePointer2 size={11} />
+          Canvas
+        </button>
+
+        <button
+          onClick={() => setMode("code")}
+          className={`
+            px-2.5
+            h-7
+            rounded-md
+            text-[10px]
+            flex
+            items-center
+            gap-1.5
+
+            ${
+              mode === "code"
+                ? "bg-[#151518] text-white"
+                : "text-zinc-600 hover:text-zinc-300"
+            }
+          `}
+        >
+          <Code2 size={11} />
+          Code
+        </button>
+
+      </div>
+
+      <div className="flex items-center gap-1">
+
+        {[
+          [Monitor, "desktop"],
+          [Tablet, "tablet"],
+          [Smartphone, "mobile"],
+        ].map(([Icon, id]) => (
+          <button
+            key={id}
+            onClick={() => setDevice(id)}
+            className={`
+              w-7
+              h-7
+              grid
+              place-items-center
+              rounded-md
+
+              ${
+                device === id
+                  ? "bg-[#151518] text-white"
+                  : "text-zinc-700 hover:text-zinc-300"
+              }
+            `}
+          >
+            <Icon size={12} />
+          </button>
+        ))}
+
+        <div className="w-px h-4 bg-[#1e1e21] mx-1" />
+
+        <button
+          onClick={() =>
+            setZoom(
+              Math.max(
+                60,
+                zoom - 10
+              )
+            )
+          }
+          className="w-7 h-7 grid place-items-center text-zinc-600 hover:text-white"
+        >
+          <Minus size={12} />
+        </button>
+
+        <span className="
+          w-9
+          text-center
+          text-[9px]
+          text-zinc-600
+        ">
+          {zoom}%
+        </span>
+
+        <button
+          onClick={() =>
+            setZoom(
+              Math.min(
+                120,
+                zoom + 10
+              )
+            )
+          }
+          className="w-7 h-7 grid place-items-center text-zinc-600 hover:text-white"
+        >
+          <Plus size={12} />
+        </button>
+
+        <button className="w-7 h-7 grid place-items-center text-zinc-600 hover:text-white">
+          <RotateCw size={12} />
+        </button>
+
+        <button className="w-7 h-7 grid place-items-center text-zinc-600 hover:text-white">
+          <Maximize2 size={12} />
+        </button>
+
+      </div>
+
+    </div>
+  );
+      }
