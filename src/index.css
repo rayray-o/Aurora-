@@ -2,21 +2,71 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  color-scheme: dark;
+/* ============================================================
+   AURORA — GLOBAL DESIGN SYSTEM
+   Tailwind CSS 3.x compatible
+============================================================ */
 
+:root {
   --aurora-black: #000000;
+
   --aurora-surface: #09090b;
   --aurora-surface-2: #0d0d0f;
   --aurora-surface-3: #121214;
+  --aurora-surface-4: #18181b;
 
   --aurora-border: #1e1e21;
-  --aurora-border-hover: #303036;
+  --aurora-border-soft: rgba(255, 255, 255, 0.055);
+  --aurora-border-hover: rgba(255, 255, 255, 0.12);
+
+  --aurora-white: #ffffff;
+  --aurora-text: #d4d4d8;
+  --aurora-muted: #71717a;
+  --aurora-dim: #52525b;
+  --aurora-ghost: #27272a;
 
   --aurora-red: #ff1232;
+  --aurora-red-hover: #ff2945;
+  --aurora-red-dark: #160406;
 
-  --aurora-muted: #71717a;
-  --aurora-dim: #3f3f46;
+  --aurora-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --aurora-ease-soft: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+
+/* ============================================================
+   BASE
+============================================================ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  width: 100%;
+  height: 100%;
+
+  background: #000000;
+  color-scheme: dark;
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  width: 100%;
+  height: 100%;
+  min-width: 320px;
+
+  margin: 0;
+  padding: 0;
+
+  background: #000000;
+  color: #ffffff;
 
   font-family:
     Inter,
@@ -27,78 +77,129 @@
     "Segoe UI",
     sans-serif;
 
-  background: #000;
-  color: #fff;
-
   font-synthesis: none;
-  text-rendering: optimizeLegibility;
-}
 
-* {
-  box-sizing: border-box;
-}
-
-html,
-body,
-#root {
-  width: 100%;
-  min-height: 100%;
-  margin: 0;
-}
-
-body {
-  background: #000;
   overflow: hidden;
 }
 
+#root {
+  width: 100%;
+  height: 100%;
+  min-height: 100dvh;
+}
+
+
+/* ============================================================
+   FORM ELEMENTS
+============================================================ */
+
 button,
 input,
-textarea {
+textarea,
+select {
   font: inherit;
 }
 
 button {
+  border: 0;
+  margin: 0;
+
+  cursor: pointer;
+
   -webkit-tap-highlight-color: transparent;
 }
 
-textarea {
-  caret-color: #ff1232;
+button:disabled {
+  cursor: default;
 }
+
+textarea,
+input {
+  outline: none;
+}
+
+textarea {
+  caret-color: var(--aurora-red);
+}
+
+input {
+  caret-color: var(--aurora-red);
+}
+
+textarea::placeholder,
+input::placeholder {
+  color: #3f3f46;
+  opacity: 1;
+}
+
+
+/* ============================================================
+   SELECTION
+============================================================ */
 
 ::selection {
   background: rgba(255, 18, 50, 0.25);
-  color: white;
+  color: #ffffff;
 }
 
-/* ---------------------------------------------------------
-   Scrollbar
---------------------------------------------------------- */
-
-::-webkit-scrollbar {
-  width: 7px;
-  height: 7px;
+::-moz-selection {
+  background: rgba(255, 18, 50, 0.25);
+  color: #ffffff;
 }
 
-::-webkit-scrollbar-track {
+
+/* ============================================================
+   SCROLLBARS
+============================================================ */
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #242428 transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
   background: transparent;
 }
 
-::-webkit-scrollbar-thumb {
+*::-webkit-scrollbar-thumb {
   background: #242428;
   border-radius: 999px;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #34343a;
+*::-webkit-scrollbar-thumb:hover {
+  background: #36363b;
 }
 
-/* ---------------------------------------------------------
-   Aurora Logo
---------------------------------------------------------- */
+
+/* ============================================================
+   HIDE SCROLLBAR
+============================================================ */
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+
+/* ============================================================
+   AURORA MARK
+============================================================ */
 
 .aurora-mark {
   width: 28px;
   height: 28px;
+
+  display: grid;
+  place-items: center;
 
   border-radius: 8px;
 
@@ -112,59 +213,58 @@ textarea {
     ),
     #0d0d0f;
 
-  display: grid;
-  place-items: center;
-
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.025),
-    0 0 0 1px rgba(0,0,0,.4);
+    inset 0 1px 0 rgba(255, 255, 255, 0.025),
+    0 0 0 1px rgba(0, 0, 0, 0.4);
 }
 
 .aurora-mark span {
   width: 8px;
   height: 8px;
 
-  border-radius: 50%;
+  border-radius: 999px;
 
   background: var(--aurora-red);
 
   box-shadow:
-    0 0 8px rgba(255,18,50,.65),
-    0 0 22px rgba(255,18,50,.2);
+    0 0 8px rgba(255, 18, 50, 0.65),
+    0 0 22px rgba(255, 18, 50, 0.2);
 }
 
-/* ---------------------------------------------------------
-   Technical Grid
---------------------------------------------------------- */
+
+/* ============================================================
+   TECHNICAL GRID
+============================================================ */
 
 .technical-grid {
   background-image:
     linear-gradient(
-      rgba(255,255,255,.018) 1px,
+      rgba(255, 255, 255, 0.018) 1px,
       transparent 1px
     ),
     linear-gradient(
       90deg,
-      rgba(255,255,255,.018) 1px,
+      rgba(255, 255, 255, 0.018) 1px,
       transparent 1px
     );
 
   background-size: 44px 44px;
 }
 
-/* ---------------------------------------------------------
-   Animations
---------------------------------------------------------- */
+
+/* ============================================================
+   GLOBAL ANIMATION
+============================================================ */
 
 @keyframes aurora-in {
-  from {
+  0% {
     opacity: 0;
     transform:
       translateY(8px)
-      scale(.99);
+      scale(0.99);
   }
 
-  to {
+  100% {
     opacity: 1;
     transform:
       translateY(0)
@@ -172,11 +272,72 @@ textarea {
   }
 }
 
+.animate-aurora-in {
+  animation:
+    aurora-in
+    0.48s
+    var(--aurora-ease)
+    both;
+}
+
+
+/* ============================================================
+   FADE
+============================================================ */
+
+@keyframes aurora-fade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-aurora-fade {
+  animation:
+    aurora-fade
+    0.4s
+    ease
+    both;
+}
+
+
+/* ============================================================
+   SCALE IN
+============================================================ */
+
+@keyframes aurora-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-aurora-scale-in {
+  animation:
+    aurora-scale-in
+    0.5s
+    var(--aurora-ease)
+    both;
+}
+
+
+/* ============================================================
+   PULSE
+============================================================ */
+
 @keyframes aurora-pulse {
   0%,
   100% {
-    opacity: .35;
-    transform: scale(.9);
+    opacity: 0.4;
+    transform: scale(0.9);
   }
 
   50% {
@@ -184,6 +345,66 @@ textarea {
     transform: scale(1);
   }
 }
+
+.animate-aurora-pulse {
+  animation:
+    aurora-pulse
+    1.6s
+    ease-in-out
+    infinite;
+}
+
+
+/* ============================================================
+   PROGRESS BAR
+============================================================ */
+
+@keyframes aurora-progress {
+  0% {
+    transform: translateX(-130%);
+  }
+
+  100% {
+    transform: translateX(430%);
+  }
+}
+
+.animate-aurora-progress {
+  animation:
+    aurora-progress
+    1.5s
+    ease-in-out
+    infinite;
+}
+
+
+/* ============================================================
+   BLINK
+============================================================ */
+
+@keyframes aurora-blink {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+.aurora-blink {
+  animation:
+    aurora-blink
+    1.4s
+    ease-in-out
+    infinite;
+}
+
+
+/* ============================================================
+   SHIMMER
+============================================================ */
 
 @keyframes aurora-shimmer {
   0% {
@@ -195,45 +416,6 @@ textarea {
   }
 }
 
-@keyframes aurora-blink {
-  0%,
-  100% {
-    opacity: .35;
-  }
-
-  50% {
-    opacity: 1;
-  }
-}
-
-.animate-aurora-in {
-  animation:
-    aurora-in
-    .42s
-    cubic-bezier(.22,1,.36,1)
-    both;
-}
-
-.animate-aurora-pulse {
-  animation:
-    aurora-pulse
-    1.5s
-    ease-in-out
-    infinite;
-}
-
-.aurora-blink {
-  animation:
-    aurora-blink
-    1.4s
-    ease-in-out
-    infinite;
-}
-
-/* ---------------------------------------------------------
-   Shimmer
---------------------------------------------------------- */
-
 .aurora-shimmer {
   position: relative;
   overflow: hidden;
@@ -244,15 +426,19 @@ textarea {
 
   position: absolute;
 
-  inset: 0;
+  top: 0;
+  bottom: 0;
+  left: 0;
 
   width: 35%;
+
+  pointer-events: none;
 
   background:
     linear-gradient(
       90deg,
       transparent,
-      rgba(255,255,255,.055),
+      rgba(255, 255, 255, 0.055),
       transparent
     );
 
@@ -263,17 +449,73 @@ textarea {
     infinite;
 }
 
-/* ---------------------------------------------------------
-   Interaction
---------------------------------------------------------- */
+
+/* ============================================================
+   RED GLOW
+============================================================ */
+
+.aurora-red-glow {
+  box-shadow:
+    0 0 0 1px rgba(255, 18, 50, 0.05),
+    0 0 24px rgba(255, 18, 50, 0.08);
+}
+
+.aurora-red-glow-strong {
+  box-shadow:
+    0 0 0 1px rgba(255, 18, 50, 0.08),
+    0 0 32px rgba(255, 18, 50, 0.16);
+}
+
+
+/* ============================================================
+   GLASS
+============================================================ */
+
+.aurora-glass {
+  background: rgba(9, 9, 11, 0.78);
+
+  backdrop-filter:
+    blur(24px)
+    saturate(120%);
+
+  -webkit-backdrop-filter:
+    blur(24px)
+    saturate(120%);
+
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+
+/* ============================================================
+   HAIRLINES
+============================================================ */
+
+.aurora-hairline {
+  width: 100%;
+  height: 1px;
+
+  background: var(--aurora-border);
+}
+
+.aurora-hairline-soft {
+  width: 100%;
+  height: 1px;
+
+  background: rgba(255, 255, 255, 0.045);
+}
+
+
+/* ============================================================
+   INTERACTION
+============================================================ */
 
 .interactive {
   transition:
-    background-color .18s ease,
-    border-color .18s ease,
-    color .18s ease,
-    transform .18s ease,
-    box-shadow .18s ease;
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    transform 180ms ease,
+    box-shadow 180ms ease;
 }
 
 .interactive:hover {
@@ -284,38 +526,194 @@ textarea {
   transform: translateY(0);
 }
 
-/* ---------------------------------------------------------
-   Panels
---------------------------------------------------------- */
 
-.panel-transition {
+/* ============================================================
+   AURORA TRANSITION SYSTEM
+============================================================ */
+
+.aurora-transition {
   transition:
-    width .38s cubic-bezier(.22,1,.36,1),
-    opacity .28s ease,
-    transform .38s cubic-bezier(.22,1,.36,1);
+    color 420ms var(--aurora-ease),
+    background-color 420ms var(--aurora-ease),
+    border-color 420ms var(--aurora-ease),
+    box-shadow 420ms var(--aurora-ease),
+    opacity 420ms var(--aurora-ease),
+    transform 420ms var(--aurora-ease);
 }
 
-/* ---------------------------------------------------------
-   Focus
---------------------------------------------------------- */
+.aurora-transition-fast {
+  transition:
+    color 180ms var(--aurora-ease),
+    background-color 180ms var(--aurora-ease),
+    border-color 180ms var(--aurora-ease),
+    opacity 180ms var(--aurora-ease),
+    transform 180ms var(--aurora-ease);
+}
+
+.aurora-transition-slow {
+  transition:
+    color 700ms var(--aurora-ease),
+    background-color 700ms var(--aurora-ease),
+    border-color 700ms var(--aurora-ease),
+    box-shadow 700ms var(--aurora-ease),
+    opacity 700ms var(--aurora-ease),
+    transform 700ms var(--aurora-ease);
+}
+
+
+/* ============================================================
+   HORIZONTAL WORKSPACE
+============================================================ */
+
+.aurora-workspace {
+  width: 200vw;
+  height: 100%;
+
+  display: flex;
+
+  will-change: transform;
+
+  transform: translate3d(0, 0, 0);
+
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.aurora-workspace-surface {
+  width: 100vw;
+  height: 100%;
+
+  flex-shrink: 0;
+
+  position: relative;
+
+  overflow: hidden;
+
+  transform: translate3d(0, 0, 0);
+}
+
+
+/* ============================================================
+   GPU ACCELERATION
+============================================================ */
+
+.aurora-gpu {
+  transform: translate3d(0, 0, 0);
+
+  will-change: transform;
+
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+
+/* ============================================================
+   CODE
+============================================================ */
+
+.aurora-code {
+  font-family:
+    "SFMono-Regular",
+    "Cascadia Code",
+    "Roboto Mono",
+    Consolas,
+    "Liberation Mono",
+    monospace;
+
+  font-variant-ligatures:
+    common-ligatures;
+
+  tab-size: 2;
+}
+
+
+/* ============================================================
+   FOCUS
+============================================================ */
 
 *:focus-visible {
-  outline: 1px solid rgba(255,18,50,.55);
+  outline: 1px solid rgba(255, 18, 50, 0.55);
   outline-offset: 2px;
 }
 
-/* ---------------------------------------------------------
-   Responsive
---------------------------------------------------------- */
 
-@media (max-width: 900px) {
-  body {
-    overflow: auto;
+/* ============================================================
+   TOUCH / MOBILE
+============================================================ */
+
+button,
+a {
+  touch-action: manipulation;
+}
+
+.aurora-no-bounce {
+  overscroll-behavior: none;
+}
+
+
+/* ============================================================
+   SAFE AREA
+============================================================ */
+
+@supports (
+  padding-bottom: env(safe-area-inset-bottom)
+) {
+  .aurora-safe-bottom {
+    padding-bottom:
+      env(safe-area-inset-bottom);
+  }
+
+  .aurora-safe-top {
+    padding-top:
+      env(safe-area-inset-top);
   }
 }
 
-@media (max-width: 720px) {
+
+/* ============================================================
+   REDUCED MOTION
+============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+
+    transition-duration: 1ms !important;
+
+    scroll-behavior: auto !important;
+  }
+}
+
+
+/* ============================================================
+   MOBILE
+============================================================ */
+
+@media (max-width: 640px) {
+  html {
+    font-size: 15px;
+  }
+
+  .aurora-glass {
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+  }
+
   .technical-grid {
     background-size: 32px 32px;
+  }
+}
+
+
+/* ============================================================
+   VERY SMALL SCREENS
+============================================================ */
+
+@media (max-width: 420px) {
+  .technical-grid {
+    background-size: 28px 28px;
   }
 }
