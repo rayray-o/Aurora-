@@ -1,845 +1,756 @@
-import React, {
-  useEffect,
-  useRef,
-  useState,
-} from "react";
-
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
-  ArrowRight,
+  ChevronLeft,
+  ChevronRight,
   Command,
-  Eye,
-  Globe,
-  History,
+  FolderKanban,
+  LogOut,
   Menu,
-  MoreHorizontal,
+  Plus,
+  Settings,
   Sparkles,
+  User,
+  X,
 } from "lucide-react";
 
 import ChatPanel from "./components/ChatPanel";
 import PreviewViewport from "./components/PreviewViewport";
+import TopBar from "./components/TopBar";
 
 import {
   mockTemplates,
   resolveTemplate,
 } from "./data/mockTemplates";
 
+const DEFAULT_PROJECT = {
+  id: "project-1",
+  name: "Untitled project",
+  template: mockTemplates.saas,
+  messages: [],
+};
 
 export default function App() {
-  const [surface, setSurface] =
-    useState("chat");
+  const [projects, setProjects] = useState([DEFAULT_PROJECT]);
+  const [activeProjectId, setActiveProjectId] =
+    useState(DEFAULT_PROJECT.id);
 
-  const [previewMode, setPreviewMode] =
-    useState("preview");
+  const [surface, setSurface] = useState("chat");
+  const [previewMode, setPreviewMode] = useState("preview");
+  const [streaming, setStreaming] = useState(false);
 
-  const [messages, setMessages] =
-    useState([]);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [commandOpen, setCommandOpen] = useState(false);
 
-  const [streaming, setStreaming] =
-    useState(false);
+  const [toast, setToast] = useState(null);
 
-  const [template, setTemplate] =
-    useState(mockTemplates.saas);
+  const generationTimer = useRef(null);
+  const toastTimer = useRef(null);
 
-  const [projectName, setProjectName] =
-    useState("Untitled website");
+  const activeProject =
+    projects.find((project) => project.id === activeProjectId) ||
+    projects[0];
 
-  const [historyOpen, setHistoryOpen] =
-    useState(false);
+  const messages = activeProject?.messages || [];
+  const template =
+    activeProject?.template || mockTemplates.saas;
 
-  const [toast, setToast] =
-    useState(null);
-
-  const [dragging, setDragging] =
-    useState(false);
-
-  const startX = useRef(0);
-  const currentX = useRef(0);
-
-  const generationTimer =
-    useRef(null);
-
-  const toastTimer =
-    useRef(null);
-
-
-  /* ==========================================================
-     TOAST
-  ========================================================== */
-
-  const showToast = (message) => {
+  const showToast = useCallback((message) => {
     setToast(message);
 
     if (toastTimer.current) {
-      window.clearTimeout(
-        toastTimer.current
-      );
+      clearTimeout(toastTimer.current);
     }
 
-    toastTimer.current =
-      window.setTimeout(() => {
-        setToast(null);
-      }, 2200);
-  };
+    toastTimer.current = setTimeout(() => {
+      setToast(null);
+    }, 2600);
+  }, []);
 
+  const updateActiveProject = useCallback(
+    (patch) => {
+      setProjects((current) =>
+        current.map((project) =>
+          project.id === activeProjectId
+            ? {
+                ...project,
+                ...patch,
+              }
+            : project
+        )
+      );
+    },
+    [activeProjectId]
+  );
 
-  /* ==========================================================
-     PREVIEW
-  ========================================================== */
-
-  const openPreview = () => {
+  const openPreview = useCallback(() => {
     setSurface("preview");
-  };
+  }, []);
 
-  const closePreview = () => {
+  const closePreview = useCallback(() => {
     setSurface("chat");
-  };
+  }, []);
 
+  const createProject = useCallback(() => {
+    const id = `project-${Date.now()}`;
 
-  /* ==========================================================
-     GENERATION
-  ========================================================== */
+    const project = {
+      id,
+      name: "Untitled project",
+      template: mockTemplates.saas,
+      messages: [],
+    };
 
-  const submitPrompt = (prompt) => {
-    if (
-      !prompt.trim() ||
-      streaming
-    ) {
-      return;
-    }
+    setProjects((current) => [
+      project,
+      ...current,
+    ]);
 
-    const cleanPrompt =
-      prompt.trim();
+    setActiveProjectId(id);
+    setSurface("chat");
+    setSidebarOpen(false);
 
-    if (
-      projectName ===
-      "Untitled website"
-    ) {
-      const generatedName =
-        cleanPrompt
-          .split(/\s+/)
-          .slice(0, 5)
-          .join(" ")
-          .replace(/[.!?]+$/, "");
+    showToast("New project created");
+  }, [showToast]);
 
-      setProjectName(
-        generatedName ||
-          "Untitled website"
-      );
-    }
+  const selectProject = useCallback(
+    (id) => {
+      if (streaming) return;
 
-    setMessages(
-      (current) => [
-        ...current,
-        {
-          id:
-            `${Date.now()}-user`,
-          role: "user",
-          content: cleanPrompt,
-        },
-      ]
-    );
+      setActiveProjectId(id);
+      setSurface("chat");
+      setPreviewMode("preview");
+      setSidebarOpen(false);
+    },
+    [streaming]
+  );
 
-    setStreaming(true);
+  const submitPrompt = useCallback(
+    (prompt) => {
+      if (!prompt.trim() || streaming) return;
 
-    const nextTemplate =
-      resolveTemplate(
-        cleanPrompt
-      );
+      const cleanPrompt = prompt.trim();
 
-    if (generationTimer.current) {
-      window.clearTimeout(
-        generationTimer.current
-      );
-    }
+      const nextTemplate =
+        resolveTemplate(cleanPrompt);
 
-    generationTimer.current =
-      window.setTimeout(() => {
-        setTemplate(
-          nextTemplate
-        );
+      const currentMessages =
+        activeProject?.messages || [];
 
-        setMessages(
-          (current) => [
-            ...current,
+      const firstPrompt =
+        currentMessages.length === 0;
+
+      const generatedName = cleanPrompt
+        .replace(
+          /^(build|create|make|design|develop)\s+/i,
+          ""
+        )
+        .split(/\s+/)
+        .slice(0, 5)
+        .join(" ")
+        .replace(/[.!?]+$/, "");
+
+      const nextName =
+        firstPrompt && generatedName
+          ? generatedName
+          : activeProject.name;
+
+      updateActiveProject({
+        name:
+          nextName === "Untitled project"
+            ? "Untitled project"
+            : nextName,
+        messages: [
+          ...currentMessages,
+          {
+            id: `${Date.now()}-user`,
+            role: "user",
+            content: cleanPrompt,
+          },
+        ],
+      });
+
+      setStreaming(true);
+
+      if (generationTimer.current) {
+        clearTimeout(generationTimer.current);
+      }
+
+      generationTimer.current = setTimeout(() => {
+        updateActiveProject({
+          template: nextTemplate,
+          messages: [
+            ...currentMessages,
             {
-              id:
-                `${Date.now()}-assistant`,
+              id: `${Date.now()}-user`,
+              role: "user",
+              content: cleanPrompt,
+            },
+            {
+              id: `${Date.now()}-assistant`,
               role: "assistant",
               content:
-                "I've generated the first version of your website. The preview is ready whenever you want to inspect it.",
+                `I built the first version around your request. ` +
+                `The ${nextTemplate.name} workspace is ready to inspect.`,
               generation: {
-                template:
-                  nextTemplate.name,
+                template: nextTemplate.name,
               },
             },
-          ]
-        );
+          ],
+        });
 
         setStreaming(false);
+        setSurface("preview");
 
         showToast(
-          "Website generated · Preview ready"
+          `Generated ${nextTemplate.name}`
         );
-      }, 1450);
-  };
+      }, 1350);
+    },
+    [
+      activeProject,
+      streaming,
+      updateActiveProject,
+      showToast,
+    ]
+  );
 
-
-  /* ==========================================================
-     STOP
-  ========================================================== */
-
-  const stopGeneration = () => {
+  const stopGeneration = useCallback(() => {
     if (generationTimer.current) {
-      window.clearTimeout(
-        generationTimer.current
-      );
-
-      generationTimer.current =
-        null;
+      clearTimeout(generationTimer.current);
+      generationTimer.current = null;
     }
 
     setStreaming(false);
+    showToast("Generation stopped");
+  }, [showToast]);
 
-    showToast(
-      "Generation stopped"
-    );
-  };
-
-
-  /* ==========================================================
-     CLEANUP
-  ========================================================== */
-
-  useEffect(() => {
-    return () => {
-      if (generationTimer.current) {
-        window.clearTimeout(
-          generationTimer.current
-        );
-      }
-
-      if (toastTimer.current) {
-        window.clearTimeout(
-          toastTimer.current
-        );
-      }
-    };
+  const handleCommand = useCallback(() => {
+    setCommandOpen(true);
   }, []);
 
-
-  /* ==========================================================
-     SWIPE
-  ========================================================== */
-
-  const beginSwipe = (event) => {
-    startX.current =
-      event.clientX;
-
-    currentX.current =
-      event.clientX;
-
-    setDragging(true);
-
-    try {
-      event.currentTarget.setPointerCapture(
-        event.pointerId
-      );
-    } catch {
-      // Pointer capture is not available
-      // in every browser environment.
-    }
-  };
-
-
-  const moveSwipe = (event) => {
-    if (!dragging) {
-      return;
-    }
-
-    currentX.current =
-      event.clientX;
-  };
-
-
-  const endSwipe = () => {
-    if (!dragging) {
-      return;
-    }
-
-    const distance =
-      currentX.current -
-      startX.current;
-
-    setDragging(false);
-
-    if (
-      distance < -70 &&
-      surface === "chat"
-    ) {
-      openPreview();
-      return;
-    }
-
-    if (
-      distance > 70 &&
-      surface === "preview"
-    ) {
-      closePreview();
-    }
-  };
-
-
-  /* ==========================================================
-     KEYBOARD NAVIGATION
-  ========================================================== */
-
   useEffect(() => {
-    const handleKeyboard =
-      (event) => {
-        if (
-          event.key === "Escape" &&
-          surface === "preview"
-        ) {
-          closePreview();
-        }
+    const handler = (event) => {
+      if (
+        (event.metaKey || event.ctrlKey) &&
+        event.key.toLowerCase() === "k"
+      ) {
+        event.preventDefault();
+        setCommandOpen(true);
+      }
 
-        if (
-          event.key === "ArrowRight" &&
-          surface === "chat"
-        ) {
-          openPreview();
-        }
+      if (event.key === "Escape") {
+        setCommandOpen(false);
+        setSettingsOpen(false);
 
-        if (
-          event.key === "ArrowLeft" &&
-          surface === "preview"
-        ) {
-          closePreview();
+        if (surface === "preview") {
+          setSurface("chat");
         }
-      };
+      }
+
+      if (
+        event.key === "ArrowRight" &&
+        surface === "chat" &&
+        !event.target.matches(
+          "input, textarea"
+        )
+      ) {
+        setSurface("preview");
+      }
+
+      if (
+        event.key === "ArrowLeft" &&
+        surface === "preview" &&
+        !event.target.matches(
+          "input, textarea"
+        )
+      ) {
+        setSurface("chat");
+      }
+    };
 
     window.addEventListener(
       "keydown",
-      handleKeyboard
+      handler
     );
 
-    return () => {
+    return () =>
       window.removeEventListener(
         "keydown",
-        handleKeyboard
+        handler
       );
-    };
   }, [surface]);
 
+  useEffect(() => {
+    return () => {
+      clearTimeout(generationTimer.current);
+      clearTimeout(toastTimer.current);
+    };
+  }, []);
 
   return (
-    <main className="
-      h-[100dvh]
-      w-full
-      bg-black
-      text-white
-      overflow-hidden
-      select-none
-    ">
+    <main className="h-[100dvh] w-full bg-black text-white overflow-hidden">
+      <TopBar
+        projectName={activeProject?.name}
+        surface={surface}
+        status={streaming ? "building" : "ready"}
+        onCommand={handleCommand}
+        onToggleSidebar={() =>
+          setSidebarOpen((value) => !value)
+        }
+        onSettings={() => setSettingsOpen(true)}
+      />
 
-      {/* ======================================================
-          TOP BAR
-      ====================================================== */}
-
-      <header className="
-        absolute
-        top-0
-        left-0
-        right-0
-        z-[80]
-        h-[58px]
-        px-5
-        flex
-        items-center
-        justify-between
-        border-b
-        border-white/[0.06]
-        bg-black/70
-        backdrop-blur-2xl
-      ">
-
-        <div className="
-          flex
-          items-center
-          gap-3
-          min-w-0
-        ">
-
-          <button
-            type="button"
-            onClick={() =>
-              setHistoryOpen(
-                (value) => !value
-              )
-            }
-            className="
-              w-8
-              h-8
-              shrink-0
-              rounded-lg
-              border
-              border-white/[0.07]
-              bg-white/[0.025]
-              grid
-              place-items-center
-              text-zinc-500
-              hover:text-white
-              hover:bg-white/[0.05]
-              transition-all
-            "
-          >
-            <Menu size={15} />
-          </button>
-
-          <div className="
-            flex
-            items-center
-            gap-2.5
-            shrink-0
-          ">
-
-            <div className="
-              w-7
-              h-7
-              rounded-[8px]
-              border
-              border-[#351117]
-              bg-[#100406]
-              grid
-              place-items-center
-            ">
-              <span className="
-                w-[7px]
-                h-[7px]
-                rounded-full
-                bg-[#ff1232]
-                shadow-[0_0_12px_rgba(255,18,50,.6)]
-              " />
-            </div>
-
-            <span className="
-              text-[11px]
-              font-semibold
-              tracking-[.22em]
-            ">
-              AURORA
-            </span>
-
-          </div>
-
-          <div className="
-            h-4
-            w-px
-            bg-white/[0.07]
-            shrink-0
-          " />
-
-          <div className="
-            hidden
-            sm:flex
-            items-center
-            gap-2
-            text-[10px]
-            text-zinc-600
-            min-w-0
-          ">
-
-            <Globe size={11} />
-
-            <span className="
-              max-w-[180px]
-              truncate
-            ">
-              {projectName}
-            </span>
-
-          </div>
-
-        </div>
-
-
-        {/* Center switcher */}
-
-        <div className="
-          absolute
-          left-1/2
-          -translate-x-1/2
-          flex
-          items-center
-          gap-1
-          p-1
-          rounded-xl
-          border
-          border-white/[0.06]
-          bg-black/60
-        ">
-
-          <button
-            type="button"
-            onClick={closePreview}
-            className={`
-              h-7
-              px-3
-              rounded-lg
-              text-[10px]
-              flex
-              items-center
-              gap-1.5
-              transition-all
-              ${
-                surface === "chat"
-                  ? "bg-white/[0.07] text-white"
-                  : "text-zinc-600 hover:text-zinc-300"
-              }
-            `}
-          >
-            <Sparkles size={11} />
-            Chat
-          </button>
-
-          <button
-            type="button"
-            onClick={openPreview}
-            className={`
-              h-7
-              px-3
-              rounded-lg
-              text-[10px]
-              flex
-              items-center
-              gap-1.5
-              transition-all
-              ${
-                surface === "preview"
-                  ? "bg-white/[0.07] text-white"
-                  : "text-zinc-600 hover:text-zinc-300"
-              }
-            `}
-          >
-            <Eye size={11} />
-            Preview
-          </button>
-
-        </div>
-
-
-        {/* Right controls */}
-
-        <div className="
-          flex
-          items-center
-          gap-1.5
-        ">
-
-          <button
-            type="button"
-            title="Command palette"
-            className="
-              hidden
-              sm:grid
-              w-8
-              h-8
-              rounded-lg
-              place-items-center
-              text-zinc-600
-              hover:text-white
-              hover:bg-white/[0.04]
-              transition-all
-            "
-          >
-            <Command size={14} />
-          </button>
-
-          <button
-            type="button"
-            title="History"
-            onClick={() =>
-              setHistoryOpen(
-                (value) => !value
-              )
-            }
-            className="
-              hidden
-              sm:grid
-              w-8
-              h-8
-              rounded-lg
-              place-items-center
-              text-zinc-600
-              hover:text-white
-              hover:bg-white/[0.04]
-              transition-all
-            "
-          >
-            <History size={14} />
-          </button>
-
-          <button
-            type="button"
-            className="
-              hidden
-              sm:grid
-              w-8
-              h-8
-              rounded-lg
-              place-items-center
-              text-zinc-600
-              hover:text-white
-              hover:bg-white/[0.04]
-              transition-all
-            "
-          >
-            <MoreHorizontal size={15} />
-          </button>
-
-          <button
-            type="button"
-            onClick={() =>
-              showToast(
-                "Deployment pipeline coming next"
-              )
-            }
-            className="
-              h-8
-              px-3
-              ml-1
-              rounded-lg
-              bg-white
-              text-black
-              text-[10px]
-              font-semibold
-              hover:bg-zinc-200
-              transition-all
-            "
-          >
-            Deploy
-          </button>
-
-        </div>
-
-      </header>
-
-
-      {/* ======================================================
-          TWO-SURFACE WORKSPACE
-      ====================================================== */}
-
-      <div
-        className="
-          absolute
-          inset-0
-          overflow-hidden
-          pt-[58px]
-        "
-        style={{
-          touchAction: "pan-y",
-        }}
-        onPointerDown={beginSwipe}
-        onPointerMove={moveSwipe}
-        onPointerUp={endSwipe}
-        onPointerCancel={endSwipe}
-      >
-
+      <div className="relative h-[calc(100dvh-58px)] overflow-hidden">
         <div
-          className={`
-            h-full
-            w-[200vw]
-            flex
-            will-change-transform
-            ${
-              dragging
-                ? "transition-none"
-                : "transition-transform duration-[650ms] ease-[cubic-bezier(.22,1,.36,1)]"
-            }
-            ${
+          className="absolute inset-0"
+          style={{
+            transform:
               surface === "preview"
-                ? "-translate-x-1/2"
-                : "translate-x-0"
-            }
-          `}
+                ? "translate3d(-100vw,0,0)"
+                : "translate3d(0,0,0)",
+            transition:
+              "transform 720ms cubic-bezier(.22,1,.36,1)",
+          }}
         >
-
-          {/* CHAT */}
-
-          <section className="
-            w-screen
-            h-full
-            shrink-0
-            relative
-            bg-black
-          ">
-
+          <section className="absolute inset-y-0 left-0 w-screen">
             <ChatPanel
               messages={messages}
               streaming={streaming}
               onSubmit={submitPrompt}
               onStop={stopGeneration}
               onOpenPreview={openPreview}
+              projectName={activeProject?.name}
             />
-
-            <div className="
-              absolute
-              bottom-5
-              right-6
-              hidden
-              md:flex
-              items-center
-              gap-2
-              text-[9px]
-              text-zinc-800
-              pointer-events-none
-            ">
-              <ArrowRight size={11} />
-              <span>
-                SWIPE TO PREVIEW
-              </span>
-            </div>
-
           </section>
 
-
-          {/* PREVIEW */}
-
-          <section className="
-            w-screen
-            h-full
-            shrink-0
-            bg-[#030304]
-          ">
-
+          <section className="absolute inset-y-0 left-[100vw] w-screen">
             <PreviewViewport
               template={template}
               mode={previewMode}
               setMode={setPreviewMode}
               onBack={closePreview}
             />
-
           </section>
-
         </div>
 
+        {surface === "chat" && messages.length > 0 && (
+          <button
+            onClick={openPreview}
+            className="
+              absolute
+              right-5
+              bottom-5
+              z-30
+              hidden
+              md:flex
+              items-center
+              gap-2
+              px-3
+              py-2
+              rounded-xl
+              border
+              border-white/[.08]
+              bg-[#0b0b0d]/90
+              backdrop-blur-xl
+              text-[10px]
+              text-zinc-400
+              hover:text-white
+              hover:border-white/[.16]
+              shadow-2xl
+              transition-all
+            "
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-[#b7ff2a]" />
+            Open preview
+            <ChevronRight size={13} />
+          </button>
+        )}
+
+        {surface === "preview" && (
+          <button
+            onClick={closePreview}
+            className="
+              absolute
+              left-5
+              bottom-5
+              z-50
+              flex
+              items-center
+              gap-2
+              px-3
+              py-2
+              rounded-xl
+              border
+              border-white/[.08]
+              bg-[#0b0b0d]/90
+              backdrop-blur-xl
+              text-[10px]
+              text-zinc-400
+              hover:text-white
+              hover:border-white/[.16]
+              shadow-2xl
+            "
+          >
+            <ChevronLeft size={13} />
+            Back to chat
+          </button>
+        )}
       </div>
 
-
-      {/* ======================================================
-          HISTORY DRAWER
-      ====================================================== */}
+      {/* PROJECT SIDEBAR */}
 
       <div
         className={`
-          absolute
-          top-[58px]
+          fixed
+          inset-y-0
           left-0
-          bottom-0
-          z-[90]
-          w-[270px]
+          z-[100]
+          w-[310px]
+          bg-[#080809]
           border-r
-          border-white/[0.07]
-          bg-[#070708]/95
-          backdrop-blur-2xl
-          shadow-[20px_0_80px_rgba(0,0,0,.45)]
+          border-white/[.07]
+          shadow-[30px_0_100px_rgba(0,0,0,.5)]
           transition-transform
           duration-500
           ease-[cubic-bezier(.22,1,.36,1)]
           ${
-            historyOpen
+            sidebarOpen
               ? "translate-x-0"
               : "-translate-x-full"
           }
         `}
       >
-
-        <div className="
-          p-4
-          border-b
-          border-white/[0.06]
-        ">
-
-          <div className="
-            text-[9px]
-            tracking-[.2em]
-            text-zinc-700
-          ">
-            WORKSPACE
-          </div>
-
-          <div className="
-            mt-2
-            text-sm
-            text-zinc-300
-            truncate
-          ">
-            {projectName}
-          </div>
-
-        </div>
-
-        <div className="p-3">
-
-          <div className="
-            text-[9px]
-            uppercase
-            tracking-[.16em]
-            text-zinc-700
-            px-2
-            mb-2
-          ">
-            Recent
+        <div className="h-[58px] border-b border-white/[.06] flex items-center justify-between px-4">
+          <div className="flex items-center gap-2">
+            <FolderKanban size={14} className="text-zinc-500" />
+            <span className="text-[11px] font-medium">
+              Projects
+            </span>
           </div>
 
           <button
-            type="button"
-            className="
-              w-full
-              text-left
-              px-3
-              py-2.5
-              rounded-lg
-              bg-white/[0.035]
-              text-[10px]
-              text-zinc-300
-            "
+            onClick={() => setSidebarOpen(false)}
+            className="text-zinc-600 hover:text-white"
           >
-            {projectName}
+            <X size={15} />
           </button>
-
         </div>
 
+        <div className="p-3">
+          <button
+            onClick={createProject}
+            className="
+              w-full
+              h-10
+              rounded-xl
+              border
+              border-white/[.08]
+              bg-white/[.025]
+              flex
+              items-center
+              justify-center
+              gap-2
+              text-[11px]
+              text-zinc-300
+              hover:bg-white/[.05]
+              hover:text-white
+            "
+          >
+            <Plus size={14} />
+            New project
+          </button>
+        </div>
+
+        <div className="px-2 space-y-1 overflow-y-auto max-h-[calc(100dvh-125px)]">
+          {projects.map((project) => (
+            <button
+              key={project.id}
+              onClick={() =>
+                selectProject(project.id)
+              }
+              className={`
+                w-full
+                text-left
+                px-3
+                py-3
+                rounded-xl
+                transition-all
+                ${
+                  project.id === activeProjectId
+                    ? "bg-white/[.055] text-white"
+                    : "text-zinc-600 hover:bg-white/[.025] hover:text-zinc-300"
+                }
+              `}
+            >
+              <div className="flex items-center gap-2">
+                <Sparkles
+                  size={12}
+                  className={
+                    project.id === activeProjectId
+                      ? "text-[#b7ff2a]"
+                      : "text-zinc-700"
+                  }
+                />
+
+                <span className="truncate text-[11px]">
+                  {project.name}
+                </span>
+              </div>
+
+              <div className="mt-1 ml-5 text-[9px] text-zinc-800">
+                {project.messages.length} messages
+              </div>
+            </button>
+          ))}
+        </div>
       </div>
 
+      {/* SETTINGS */}
 
-      {/* ======================================================
-          TOAST
-      ====================================================== */}
+      {settingsOpen && (
+        <SettingsPanel
+          onClose={() => setSettingsOpen(false)}
+        />
+      )}
+
+      {/* COMMAND */}
+
+      {commandOpen && (
+        <CommandPalette
+          onClose={() => setCommandOpen(false)}
+          onNewProject={createProject}
+          onPreview={openPreview}
+          onSettings={() => {
+            setCommandOpen(false);
+            setSettingsOpen(true);
+          }}
+        />
+      )}
+
+      {/* TOAST */}
 
       {toast && (
-        <div className="
-          absolute
-          bottom-6
-          left-1/2
-          -translate-x-1/2
-          z-[120]
-          px-4
-          py-2.5
-          rounded-xl
-          border
-          border-white/[0.09]
-          bg-[#101012]/95
-          backdrop-blur-xl
-          shadow-[0_15px_50px_rgba(0,0,0,.55)]
-          text-[10px]
-          text-zinc-300
-          animate-aurora-in
-        ">
+        <div
+          className="
+            fixed
+            left-1/2
+            bottom-6
+            -translate-x-1/2
+            z-[200]
+            px-4
+            py-2.5
+            rounded-xl
+            border
+            border-white/[.09]
+            bg-[#0c0c0e]/95
+            backdrop-blur-xl
+            shadow-2xl
+            flex
+            items-center
+            gap-2
+            text-[10px]
+            text-zinc-300
+            animate-aurora-in
+          "
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-[#b7ff2a]" />
           {toast}
         </div>
       )}
-
     </main>
   );
-        }
+}
+
+function SettingsPanel({ onClose }) {
+  const [email] = useState(
+    "Sign in to connect your account"
+  );
+
+  return (
+    <div className="fixed inset-0 z-[150] bg-black/70 backdrop-blur-md flex justify-end">
+      <div className="w-full max-w-[440px] h-full bg-[#09090b] border-l border-white/[.07] shadow-2xl animate-aurora-in">
+        <div className="h-[58px] border-b border-white/[.06] px-5 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Settings size={14} className="text-zinc-500" />
+            <span className="text-[11px] font-medium">
+              Settings
+            </span>
+          </div>
+
+          <button onClick={onClose}>
+            <X size={16} className="text-zinc-600 hover:text-white" />
+          </button>
+        </div>
+
+        <div className="p-5 space-y-8 overflow-y-auto h-[calc(100%-58px)]">
+          <SettingSection title="Account">
+            <SettingRow
+              icon={User}
+              title="Account"
+              value={email}
+            />
+
+            <button className="w-full h-10 rounded-xl bg-white text-black text-[11px] font-medium flex items-center justify-center gap-2 hover:bg-zinc-200">
+              <User size={13} />
+              Continue with Google
+            </button>
+
+            <button className="w-full h-10 rounded-xl border border-white/[.07] text-zinc-500 text-[11px] flex items-center justify-center gap-2 hover:text-white">
+              <LogOut size={13} />
+              Sign out
+            </button>
+          </SettingSection>
+
+          <SettingSection title="Workspace">
+            <SettingRow
+              title="Theme"
+              value="Dark"
+            />
+
+            <SettingRow
+              title="Accent"
+              value="Aurora Green"
+            />
+
+            <SettingRow
+              title="Editor"
+              value="Automatic"
+            />
+          </SettingSection>
+
+          <SettingSection title="Generation">
+            <SettingRow
+              title="Model"
+              value="Aurora Engine"
+            />
+
+            <SettingRow
+              title="Generation mode"
+              value="Full build"
+            />
+
+            <SettingRow
+              title="Auto-open preview"
+              value="On"
+            />
+          </SettingSection>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SettingSection({ title, children }) {
+  return (
+    <section>
+      <div className="text-[9px] uppercase tracking-[.18em] text-zinc-700 mb-3">
+        {title}
+      </div>
+
+      <div className="space-y-2">
+        {children}
+      </div>
+    </section>
+  );
+}
+
+function SettingRow({
+  icon: Icon,
+  title,
+  value,
+}) {
+  return (
+    <div className="min-h-12 rounded-xl border border-white/[.06] bg-white/[.015] px-3 flex items-center gap-3">
+      {Icon && (
+        <Icon size={13} className="text-zinc-700" />
+      )}
+
+      <div className="flex-1">
+        <div className="text-[10px] text-zinc-400">
+          {title}
+        </div>
+
+        <div className="text-[9px] text-zinc-700 mt-0.5">
+          {value}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CommandPalette({
+  onClose,
+  onNewProject,
+  onPreview,
+  onSettings,
+}) {
+  return (
+    <div className="fixed inset-0 z-[180] bg-black/70 backdrop-blur-md flex items-start justify-center pt-[15vh]">
+      <div className="w-[min(520px,calc(100vw-32px))] rounded-2xl border border-white/[.08] bg-[#0b0b0d] shadow-[0_40px_120px_rgba(0,0,0,.65)] overflow-hidden animate-aurora-scale-in">
+        <div className="h-12 border-b border-white/[.06] px-4 flex items-center gap-3">
+          <Command size={14} className="text-zinc-600" />
+          <input
+            autoFocus
+            placeholder="Search commands..."
+            className="flex-1 bg-transparent text-xs text-white placeholder:text-zinc-700"
+          />
+          <kbd className="text-[9px] text-zinc-700">
+            ESC
+          </kbd>
+        </div>
+
+        <div className="p-2">
+          <CommandItem
+            icon={Plus}
+            label="New project"
+            shortcut="N"
+            onClick={() => {
+              onNewProject();
+              onClose();
+            }}
+          />
+
+          <CommandItem
+            icon={ChevronRight}
+            label="Open preview"
+            shortcut="→"
+            onClick={() => {
+              onPreview();
+              onClose();
+            }}
+          />
+
+          <CommandItem
+            icon={Settings}
+            label="Settings"
+            shortcut=","
+            onClick={onSettings}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CommandItem({
+  icon: Icon,
+  label,
+  shortcut,
+  onClick,
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="w-full h-11 px-3 rounded-lg flex items-center gap-3 text-zinc-500 hover:bg-white/[.05] hover:text-white"
+    >
+      <Icon size={14} />
+      <span className="flex-1 text-left text-[11px]">
+        {label}
+      </span>
+      <kbd className="text-[9px] text-zinc-700">
+        {shortcut}
+      </kbd>
+    </button>
+  );
+  }
